@@ -4,9 +4,18 @@
     "version":"1.0",
     "manifest_version":3,
     "background":{
-        "service_worker":"script/background.js"
+        "service_worker":"background.js"
     },
-	"permissions": ["storage", "activeTab", "scripting"],
+	"host_permissions": [
+		"*://*/"
+	],
+	"permissions": ["storage", "activeTab", "scripting", "tabs"],
+	"content_scripts": [
+		{
+		  "matches": ["*://*/**"],
+		  "js": ["/script/myscript.js"]
+		}
+	],
 
 	"action": {
 		"default_popup": "popup.html",
