@@ -9,7 +9,13 @@
 	"host_permissions": [
 		"*://*/"
 	],
-	"permissions": ["storage", "activeTab", "scripting", "tabs"],
+	"permissions": [
+		"storage",
+		"activeTab",
+		"scripting",
+		"tabs",
+		"contextMenus"
+	],
 	"content_scripts": [
 		{
 		  "matches": ["*://*/**"],
