@@ -9,6 +9,10 @@ chrome.contextMenus.create({
 })
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-    console.log(info)
-    console.log(tab)
+    // console.log(info)
+    // console.log(tab)
+    chrome.scripting.executeScript({
+		target: { tabId: tab.id },
+		files: ['script/select.js']
+	})
 })

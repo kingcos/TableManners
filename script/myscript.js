@@ -1,4 +1,4 @@
-console.log('--- Running in myscript.js ---')
+console.log('--- Running in filter.js ---')
 
 // let ActionEnum = {
 //   FILTER: 'FILTER'
@@ -7,7 +7,7 @@ console.log('--- Running in myscript.js ---')
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
     // if (request.action == ActionEnum.FILTER) {
-      // filterRows(request.content)
+      filterRows(request.content)
     // }
   }
 )

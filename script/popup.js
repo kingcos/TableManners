@@ -33,7 +33,7 @@ document.getElementById('getTablesButton').addEventListener('click', async () =>
     console.log('getTablesButton')
 
     if (filterInputValue.length == 0) {
-        return
+        // return
     }
 
     let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
