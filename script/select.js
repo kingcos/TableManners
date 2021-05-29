@@ -66,11 +66,37 @@ function findTargetColumn(selectedNode) {
                 return targetClassName
             } else {
                 // 不存在 thead；TODO
+                alert('不存在 thead')
             }
         }
     } else {
-        // 直接找 tbody；TODO
+        // 有 td（表体），找 td 序号
+        var tdIndex = getChildElementIndex(closestTD)
+
+        return addClass(closestTD.parentNode, tdIndex, targetClassName)
     }
+}
+
+function addClass(trNode, index, targetClassName) {
+    if (trNode == null 
+     || trNode.parentNode == null
+     || trNode.parentNode.childElementCount <= 0
+     || trNode.nodeName.toLowerCase() != 'tr') {
+        alert('')
+        return
+    }
+
+    for (var i = 0; i < trNode.parentNode.children.length; i += 1) {
+        var tr = trNode.parentNode.children[i]
+        var targetTD = tr.children[index]
+        if (targetTD.classList.contains(targetClassName)) {
+            // 已经含有；TODO
+        } else {
+            targetTD.classList.add(targetClassName)
+        }
+    }
+
+    return targetClassName
 }
 
 function getChildElementIndex(node) {
