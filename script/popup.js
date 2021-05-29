@@ -38,12 +38,17 @@ document.getElementById('getTablesButton').addEventListener('click', async () =>
 
     let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
-    chrome.scripting.executeScript({
-		target: { tabId: tab.id },
-		files: ['script/myscript.js']
-	}, () => {
-        console.log(filterInputValue)
-        chrome.tabs.sendMessage(tab.id, {content: filterInputValue});
+    chrome.storage.local.get(['targetClass'], (result) => {
+        console.log(result)
+        var targetColumnClass = result.targetClass;
+
+        chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            files: ['script/myscript.js']
+        }, () => {
+            console.log(filterInputValue, targetColumnClass)
+            chrome.tabs.sendMessage(tab.id, {content: filterInputValue, targetClass: targetColumnClass});
+        })
     })
 }, false)
 

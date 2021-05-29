@@ -1,60 +1,80 @@
 // 选中的节点
 var selectedNode = document.getSelection().anchorNode
 
-// 先找最近的 Table
-var closestTable = selectedNode.parentNode.closest('table')
-if (closestTable == null) {
-    // 找不到节点树上的 Table，说明没表格，返回
+// 目标列以选定（返回 class）
+var targetColumnClass = findTargetColumn(selectedNode)
 
-    return
+if (targetColumnClass) {
+    alert('已锁定列')
+
+    chrome.storage.local.set({ targetClass: targetColumnClass }, function() {
+        console.log('Value is set to ' + targetColumnClass);
+    });
+} else {
+    alert('请重试')
 }
 
-// 再找最近的 td
-var closestTD = selectedNode.parentNode.closest('td')
-if (closestTD == null) {
-    // td 找不到，说明没在表格内部，尝试下 th（表头）
-    var closestTH = selectedNode.parentNode.closest('th')
-    if (closestTH == null) {
-        // 表格有问题 🤨 / 未适配
-        alert('表格有问题 🤨 / 未适配')
-    } else {
-        // 找到表头单元格
+function findTargetColumn(selectedNode) {
+    var targetClassName = 'table_manners_target'
 
-        // 找所在的序号
-        var thIndex = getChildElementIndex(closestTH)
+    // 先找最近的 Table
+    var closestTable = selectedNode.parentNode.closest('table')
+    if (closestTable == null) {
+        // 找不到节点树上的 Table，说明没表格，返回
+        return
+    }
 
-        // 找 tr
-        var tr = closestTH.parentNode
-        if (tr.parentNode.nodeName.toLowerCase() == 'thead') {
-            // 存在 thead
-            var thead = tr.parentNode
+    // 再找最近的 td
+    var closestTD = selectedNode.parentNode.closest('td')
+    if (closestTD == null) {
+        // td 找不到，说明没在表格内部，尝试下 th（表头）
+        var closestTH = selectedNode.parentNode.closest('th')
+        if (closestTH == null) {
+            // 表格有问题 🤨 / 未适配
+            alert('表格有问题 🤨 / 未适配')
+        } else {
+            // 找到表头单元格
 
-            var allThead = document.getElementsByTagName('thead')
-            var theadIndex = Array.prototype.indexOf.call(allThead, thead)
-            var allTbody = document.getElementsByTagName('tbody')
-            var tbody = allTbody[theadIndex]
+            // 找所在的序号
+            var thIndex = getChildElementIndex(closestTH)
 
-            for (var i = 0; i < tbody.children.length; i += 1) {
-                if (tbody.children[i].nodeName.toLowerCase != 'tr') {
-                    return
+            // 找 tr
+            var tr = closestTH.parentNode
+            if (tr.parentNode.nodeName.toLowerCase() == 'thead') {
+                // 存在 thead
+                var thead = tr.parentNode
+
+                var allThead = document.getElementsByTagName('thead')
+                var theadIndex = Array.prototype.indexOf.call(allThead, thead)
+                var allTbody = document.getElementsByTagName('tbody')
+                var tbody = allTbody[theadIndex]
+
+                for (var i = 0; i < tbody.children.length; i += 1) {
+                    if (tbody.children[i].nodeName.toLowerCase() != 'tr'
+                     || tbody.children[i].childElementCount <= thIndex) {
+                        return
+                    }
+
+                    var targetTD = tbody.children[i].children[thIndex]
+                    if (targetTD.classList.contains(targetClassName)) {
+                        // 已经含有；TODO
+                    } else {
+                        targetTD.classList.add(targetClassName)
+                    }
                 }
 
-
+                return targetClassName
+            } else {
+                // 不存在 thead；TODO
             }
-
-
-        } else {
-            // 不存在 thead；TODO
-            
         }
+    } else {
+        // 直接找 tbody；TODO
     }
-} else {
-    // 直接找 tbody
-
 }
 
 function getChildElementIndex(node) {
-    return Array.prototype.indexOf.call(node.parentNode.children, node);
+    return Array.prototype.indexOf.call(node.parentNode.children, node)
 }
 
 function fetchAllText(node) {
