@@ -11,7 +11,7 @@ TableManner，是一款服务于网页中 `<table>` 表格的浏览器插件。
 
 ![Chrome Extension Structure](./chrome-ext-structure.svg)
 
-<details>
+</details>
 
 ## Feature List
 
