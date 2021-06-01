@@ -44,7 +44,7 @@ document.getElementById('getTablesButton').addEventListener('click', async () =>
 
         chrome.scripting.executeScript({
             target: { tabId: tab.id },
-            files: ['script/myscript.js']
+            files: ['script/content-script.js']
         }, () => {
             console.log(filterInputValue, targetColumnClass)
             chrome.tabs.sendMessage(tab.id, {content: filterInputValue, targetClass: targetColumnClass});

@@ -1,4 +1,4 @@
-console.log('--- Running in myscript.js ---')
+console.log('--- Running in content-script.js ---')
 
 chrome.runtime.onMessage.addListener(
   function(message, sender, sendResponse) {

@@ -20,7 +20,7 @@
 		{
 		  "matches": ["*://*/**"],
 		  "js": [
-			"/script/myscript.js"
+			"/script/content-script.js"
 		  ]
 		}
 	],
