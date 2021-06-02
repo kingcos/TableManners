@@ -42,6 +42,18 @@ function filterRows(filterInputValue, targetClass) {
 //   }
 // )
 
+// -----------
+
+// --- Generic Functions ---
+
+// --- Variables ---
+// let tableObservers = []
+
+let headerMouseEnterTimer = null
+let highlightClass = 'tm-highlight-cells'
+
+// --- Functions ---
+
 function tableAdded(table) {
   console.log('tableAdded')
 
@@ -52,6 +64,18 @@ function trAdded(tr) {
   console.log('trAdded')
 
   tr.style.background = 'red'
+}
+
+function highlightColumn(table, cell) {
+  let cells = table.querySelectorAll(cell.nodeName.toLowerCase())
+  let num = Array.prototype.indexOf.call(cells, cell)
+  let rows = table.querySelectorAll('tr')
+
+  for (let i = 0; i < rows.length; i += 1) {
+    let target = rows[i].querySelectorAll('th, td')[num]
+    target.style.background = 'red'
+    target.classList.add(highlightClass)
+  }
 }
 
 function findAllTables(table) {
@@ -67,15 +91,14 @@ function findAllTables(table) {
   }
 }
 
-// let tableObservers = []
-
-let headerMouseEnterTimer = null
-
 function addArrowForTable(table) {
+  let containerClass = 'tm-mouse-over-container'
+
   function _disconnectThenRetry(observer, table) {
     observer.disconnect()   // Get first tr -> header
     addArrowForTable(table) // Add it again
   }
+
   if (table == null) { return }
 
   let rows = table.querySelectorAll('tr')
@@ -119,12 +142,17 @@ function addArrowForTable(table) {
     // When mouse enter, wait then apply it
     cell.addEventListener('mouseenter', (event) => {
       headerMouseEnterTimer = setTimeout(() => {
+        highlightColumn(table, event.target)
+
         event.target.style.position = 'relative'
 
         let div = document.createElement('div')
-        div.setAttribute('class', 'mouse_over_auto_div')
+        div.setAttribute('class', containerClass)
         div.style.cssText = 'position: absolute; right: 0; top: 50%; transform: translateY(-50%);'
         div.appendChild(document.createTextNode('⬇️'))
+        div.addEventListener('click', (event) => {
+          console.log('click')
+        })
         event.target.appendChild(div)
 
         // event.target.style.background = 'red'
@@ -135,9 +163,14 @@ function addArrowForTable(table) {
     cell.addEventListener('mouseleave', (event) => {
       clearTimeout(headerMouseEnterTimer)
 
-      let divs = event.target.getElementsByClassName('mouse_over_auto_div')
+      let divs = event.target.getElementsByClassName(containerClass)
       for (let i = 0; i < divs.length; i += 1) {
         divs[0].parentNode.removeChild(divs[0])
+      }
+
+      let highlights = table.getElementsByClassName(highlightClass)
+      for (let i = 0; i < highlights.length; i += 1) {
+        highlights[i].style.background = ''
       }
 
       // event.target.style.background = ''
