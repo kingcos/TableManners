@@ -119,7 +119,6 @@ function addArrowForTable(table) {
     // When mouse enter, wait then apply it
     cell.addEventListener('mouseenter', (event) => {
       headerMouseEnterTimer = setTimeout(() => {
-        // TODO
         event.target.style.position = 'relative'
 
         let div = document.createElement('div')
@@ -127,12 +126,9 @@ function addArrowForTable(table) {
         div.style.cssText = 'position: absolute; right: 0; top: 50%; transform: translateY(-50%);'
         div.appendChild(document.createTextNode('⬇️'))
         event.target.appendChild(div)
-        console.log('added')
 
         // event.target.style.background = 'red'
       }, 300)
-
-      // event.target.innerHTML += '<div style="position: fixed; z-index: 99; right: 0; top: 50%; transform: translateY(-50%)"><div>嘻嘻嘻</div></div>'
     }, false)
 
     // When mouse out, recover it
@@ -143,7 +139,7 @@ function addArrowForTable(table) {
       for (let i = 0; i < divs.length; i += 1) {
         divs[0].parentNode.removeChild(divs[0])
       }
-      console.log('removed')
+
       // event.target.style.background = ''
     }, false)
   } 
