@@ -51,6 +51,7 @@ function tableAdded(table) {
 function trAdded(tr) {
   console.log('trAdded')
 
+  tr.style.background = 'red'
 }
 
 function findAllTables(table) {
@@ -62,17 +63,61 @@ function findAllTables(table) {
   }
 
   for (var i = 0; i < tables.length; i += 1) {
-    tables[i].style.background = 'red'
+    addArrowForTable(tables[i])
+  }
+}
+
+var tableObservers = []
+
+function addArrowForTable(table) {
+  if (table == null) { return }
+
+  var rows = table.querySelectorAll('tr')
+  if (rows.length == 0) {
+    // No entires -> Observe it
+
+    let options = { childList: true, subtree: true }
+    let observer = new MutationObserver((mutations) => {
+      // console.log(mutations)
+      for (var i = 0; i < mutations.length; i += 1) {
+        var mutation = mutations[i]
+  
+        for (var j = 0; j < mutation.addedNodes.length; j += 1) {
+          var addedNode = mutation.addedNodes[j]
+          
+          if (addedNode.nodeName.toLowerCase() == 'tr') {
+            observer.disconnect() // Get first tr -> header
+
+            addArrowForTable(table)
+
+            return
+          } else if (addedNode.querySelectorAll != undefined) {
+            var trs = addedNode.querySelectorAll('tr')
+            if (trs.length > 0) {
+              observer.disconnect() // Get first tr -> header
+
+              addArrowForTable(table)
+
+              return
+            }
+          }
+        }
+      }
+    })
+
+    observer.observe(table, options)
+  } else {
+    rows[0].style.background = 'red'
   }
 }
 
 function startObserveWebPage() {
   console.log('startObserveWebPage')
 
-  // 找已加载表格
+  // Find table that already loaded
   findAllTables(null)
 
-  // 监听是否有表格
+  // Observe new table inserted
   let target = document.getElementsByTagName('body')[0]
   let options = { childList: true, subtree: true }
   let observer = new MutationObserver((mutations) => {
@@ -83,16 +128,18 @@ function startObserveWebPage() {
       for (var j = 0; j < mutation.addedNodes.length; j += 1) {
         var addedNode = mutation.addedNodes[j]
 
+        // 1. Try to find added <table>
         if (addedNode.nodeName.toLowerCase() == 'table') {
           tableAdded(addedNode)
-        }
-
-        if (addedNode.nodeName.toLowerCase() == 'tr') {
-          trAdded(addedNode)
+        } else if (addedNode.querySelectorAll != undefined) {
+          // 2. Try to find inner <table>
+          var tables = addedNode.querySelectorAll('table')
+          for (var k = 0; k < tables.length; k += 1) {
+            tableAdded(tables[k])
+          }
         }
       }
     }
-
   })
 
   observer.observe(target, options)
