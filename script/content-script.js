@@ -70,11 +70,15 @@ function findAllTables(table) {
 var tableObservers = []
 
 function addArrowForTable(table) {
+  function _disconnectThenRetry(observer, table) {
+    observer.disconnect()   // Get first tr -> header
+    addArrowForTable(table) // Add it again
+  }
   if (table == null) { return }
 
   var rows = table.querySelectorAll('tr')
   if (rows.length == 0) {
-    // No entires -> Observe it
+    // No entires -> Observe once tr added for this table
 
     let options = { childList: true, subtree: true }
     let observer = new MutationObserver((mutations) => {
@@ -86,19 +90,11 @@ function addArrowForTable(table) {
           var addedNode = mutation.addedNodes[j]
           
           if (addedNode.nodeName.toLowerCase() == 'tr') {
-            observer.disconnect() // Get first tr -> header
-
-            addArrowForTable(table)
-
-            return
+            return _disconnectThenRetry(observer, table)
           } else if (addedNode.querySelectorAll != undefined) {
             var trs = addedNode.querySelectorAll('tr')
             if (trs.length > 0) {
-              observer.disconnect() // Get first tr -> header
-
-              addArrowForTable(table)
-
-              return
+              return _disconnectThenRetry(observer, table)
             }
           }
         }
@@ -106,9 +102,25 @@ function addArrowForTable(table) {
     })
 
     observer.observe(table, options)
-  } else {
-    rows[0].style.background = 'red'
+
+    return
   }
+
+  // Add arrow for first row
+  var head = rows[0]
+  var cells = head.querySelectorAll('th, td')
+  if (cells.length == 0) { return }
+
+  for (var i = 0; i < cells.length; i += 1) {
+    var cell = cells[i]
+
+    cell.addEventListener('mouseenter', (event) => {
+      // event.target.addEventListener('mouse')
+      event.target.style.background = 'red'
+
+      console.log(event.target)
+    }, false)
+  } 
 }
 
 function startObserveWebPage() {
