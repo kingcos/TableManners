@@ -78,6 +78,14 @@ function highlightColumn(table, cell) {
   }
 }
 
+function popOver(element) {
+  let div = document.createElement('div')
+  element.parentNode.appendChild(div)
+
+  const popperInstance = Popper.createPopper(element, div)
+  popperInstance.update();
+}
+
 function findAllTables(table) {
   let tables
   if (table != null) {
@@ -152,6 +160,9 @@ function addArrowForTable(table) {
         div.appendChild(document.createTextNode('⬇️'))
         div.addEventListener('click', (event) => {
           console.log('click')
+
+          // TODO
+          popOver(event.target)
         })
         event.target.appendChild(div)
 

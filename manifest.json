@@ -20,11 +20,11 @@
 		{
 		  "matches": ["*://*/**"],
 		  "js": [
-			"/script/content-script.js"
+			"/script/content-script.js",
+			"/script/oth/popper.min.js"
 		  ]
 		}
 	],
-
 	"action": {
 		"default_popup": "popup.html",
 		"default_icon": {
