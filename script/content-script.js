@@ -55,19 +55,19 @@ function trAdded(tr) {
 }
 
 function findAllTables(table) {
-  var tables
+  let tables
   if (table != null) {
     tables = [table]
   } else {
     tables = document.getElementsByTagName('table')
   }
 
-  for (var i = 0; i < tables.length; i += 1) {
+  for (let i = 0; i < tables.length; i += 1) {
     addArrowForTable(tables[i])
   }
 }
 
-var tableObservers = []
+// let tableObservers = []
 
 function addArrowForTable(table) {
   function _disconnectThenRetry(observer, table) {
@@ -76,23 +76,23 @@ function addArrowForTable(table) {
   }
   if (table == null) { return }
 
-  var rows = table.querySelectorAll('tr')
+  let rows = table.querySelectorAll('tr')
   if (rows.length == 0) {
     // No entires -> Observe once tr added for this table
 
     let options = { childList: true, subtree: true }
     let observer = new MutationObserver((mutations) => {
       // console.log(mutations)
-      for (var i = 0; i < mutations.length; i += 1) {
-        var mutation = mutations[i]
+      for (let i = 0; i < mutations.length; i += 1) {
+        let mutation = mutations[i]
   
-        for (var j = 0; j < mutation.addedNodes.length; j += 1) {
-          var addedNode = mutation.addedNodes[j]
+        for (let j = 0; j < mutation.addedNodes.length; j += 1) {
+          let addedNode = mutation.addedNodes[j]
           
           if (addedNode.nodeName.toLowerCase() == 'tr') {
             return _disconnectThenRetry(observer, table)
           } else if (addedNode.querySelectorAll != undefined) {
-            var trs = addedNode.querySelectorAll('tr')
+            let trs = addedNode.querySelectorAll('tr')
             if (trs.length > 0) {
               return _disconnectThenRetry(observer, table)
             }
@@ -107,18 +107,21 @@ function addArrowForTable(table) {
   }
 
   // Add arrow for first row
-  var head = rows[0]
-  var cells = head.querySelectorAll('th, td')
+  let head = rows[0]
+  let cells = head.querySelectorAll('th, td')
   if (cells.length == 0) { return }
 
-  for (var i = 0; i < cells.length; i += 1) {
-    var cell = cells[i]
+  for (let i = 0; i < cells.length; i += 1) {
+    let cell = cells[i]
 
     cell.addEventListener('mouseenter', (event) => {
-      // event.target.addEventListener('mouse')
       event.target.style.background = 'red'
 
-      console.log(event.target)
+      // event.target.innerHTML += '<div style="position: fixed; z-index: 99; right: 0; top: 50%; transform: translateY(-50%)"><div>嘻嘻嘻</div></div>'
+    }, false)
+
+    cell.addEventListener('mouseout', (event) => {
+      event.target.style.background = ''
     }, false)
   } 
 }
@@ -134,19 +137,19 @@ function startObserveWebPage() {
   let options = { childList: true, subtree: true }
   let observer = new MutationObserver((mutations) => {
     // console.log(mutations)
-    for (var i = 0; i < mutations.length; i += 1) {
-      var mutation = mutations[i]
+    for (let i = 0; i < mutations.length; i += 1) {
+      let mutation = mutations[i]
 
-      for (var j = 0; j < mutation.addedNodes.length; j += 1) {
-        var addedNode = mutation.addedNodes[j]
+      for (let j = 0; j < mutation.addedNodes.length; j += 1) {
+        let addedNode = mutation.addedNodes[j]
 
         // 1. Try to find added <table>
         if (addedNode.nodeName.toLowerCase() == 'table') {
           tableAdded(addedNode)
         } else if (addedNode.querySelectorAll != undefined) {
           // 2. Try to find inner <table>
-          var tables = addedNode.querySelectorAll('table')
-          for (var k = 0; k < tables.length; k += 1) {
+          let tables = addedNode.querySelectorAll('table')
+          for (let k = 0; k < tables.length; k += 1) {
             tableAdded(tables[k])
           }
         }
