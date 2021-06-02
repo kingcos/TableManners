@@ -69,6 +69,8 @@ function findAllTables(table) {
 
 // let tableObservers = []
 
+let headerMouseEnterTimer = null
+
 function addArrowForTable(table) {
   function _disconnectThenRetry(observer, table) {
     observer.disconnect()   // Get first tr -> header
@@ -114,13 +116,19 @@ function addArrowForTable(table) {
   for (let i = 0; i < cells.length; i += 1) {
     let cell = cells[i]
 
+    // When mouse enter, wait then apply it
     cell.addEventListener('mouseenter', (event) => {
-      event.target.style.background = 'red'
+      headerMouseEnterTimer = setTimeout(() => {
+        event.target.style.background = 'red'
+      }, 1000)
 
       // event.target.innerHTML += '<div style="position: fixed; z-index: 99; right: 0; top: 50%; transform: translateY(-50%)"><div>嘻嘻嘻</div></div>'
     }, false)
 
+    // When mouse out, recover it
     cell.addEventListener('mouseout', (event) => {
+      clearTimeout(headerMouseEnterTimer)
+
       event.target.style.background = ''
     }, false)
   } 
