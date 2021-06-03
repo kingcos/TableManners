@@ -22,7 +22,8 @@
 		  "js": [
 			"/script/content-script.js",
 			"/script/oth/popper.min.js"
-		  ]
+		  ],
+		  "all_frames": true
 		}
 	],
 	"action": {

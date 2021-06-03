@@ -73,6 +73,10 @@ function highlightColumn(table, cell) {
 
   for (let i = 0; i < rows.length; i += 1) {
     let target = rows[i].querySelectorAll('th, td')[num]
+    if (target == undefined) {
+      // Fixed for colspan
+      continue
+    }
     target.style.background = 'red'
     target.classList.add(highlightClass)
   }
@@ -156,7 +160,7 @@ function addArrowForTable(table) {
 
         let div = document.createElement('div')
         div.setAttribute('class', containerClass)
-        div.style.cssText = 'position: absolute; right: 0; top: 50%; transform: translateY(-50%);'
+        div.style.cssText = 'position: absolute; right: 0; top: 50%; transform: translateY(-50%); font-size: 14px;'
         div.appendChild(document.createTextNode('⬇️'))
         div.addEventListener('click', (event) => {
           console.log('click')
@@ -176,7 +180,7 @@ function addArrowForTable(table) {
 
       let divs = event.target.getElementsByClassName(containerClass)
       for (let i = 0; i < divs.length; i += 1) {
-        divs[0].parentNode.removeChild(divs[0])
+        divs[i].parentNode.removeChild(divs[i])
       }
 
       let highlights = table.getElementsByClassName(highlightClass)
