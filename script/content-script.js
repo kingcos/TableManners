@@ -126,6 +126,12 @@ function popOver(element) {
   input.addEventListener('input', (event) => {
     filterRowsByKeyword(event.target.value, false, false)
     // console.log(event.target.value)
+    if (event.target.value.trim() !== '') {
+      // Not empty
+      element.innerHTML = "🔍"
+    } else {
+      element.innerHTML = "⬇️"
+    }
   })
 
   // const popperInstance = Popper.createPopper(element, div)
@@ -222,7 +228,9 @@ function addArrowForTable(table) {
 
       let divs = event.target.getElementsByClassName(containerClass)
       for (let i = 0; i < divs.length; i += 1) {
-        divs[i].parentNode.removeChild(divs[i])
+        if (divs[i].innerHTML != '🔍') {
+          divs[i].parentNode.removeChild(divs[i])
+        }
       }
 
       let highlights = table.getElementsByClassName(highlightClass)
