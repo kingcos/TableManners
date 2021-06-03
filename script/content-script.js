@@ -10,6 +10,7 @@ chrome.runtime.onMessage.addListener(
 )
 
 function filterRows(filterInputValue, targetClass) {
+  console.log(filterInputValue)
   var tds = document.getElementsByClassName(targetClass)
   for (var i = 0; i < tds.length; i += 1) {
     content = tds[i].innerHTML
@@ -44,6 +45,8 @@ function filterRows(filterInputValue, targetClass) {
 
 // -----------
 
+
+
 // --- Generic Functions ---
 
 // --- Variables ---
@@ -51,6 +54,7 @@ function filterRows(filterInputValue, targetClass) {
 
 let headerMouseEnterTimer = null
 let highlightClass = 'tm-highlight-cells'
+let maxTriggerRowsLength = 3
 
 // --- Functions ---
 
@@ -60,34 +64,72 @@ function tableAdded(table) {
   findAllTables(table)
 }
 
-function trAdded(tr) {
-  console.log('trAdded')
+// function trAdded(tr) {
+//   console.log('trAdded')
 
-  tr.style.background = 'red'
-}
+//   tr.style.background = 'red'
+// }
 
 function highlightColumn(table, cell) {
   let cells = table.querySelectorAll(cell.nodeName.toLowerCase())
   let num = Array.prototype.indexOf.call(cells, cell)
   let rows = table.querySelectorAll('tr')
 
-  for (let i = 0; i < rows.length; i += 1) {
+  for (let i = 1; i < rows.length; i += 1) {
     let target = rows[i].querySelectorAll('th, td')[num]
     if (target == undefined) {
       // Fixed for colspan
       continue
     }
-    target.style.background = 'red'
+    // target.style.background = 'red'
     target.classList.add(highlightClass)
   }
 }
 
+let timerId = null
+
+function debounce(fn, wait) {
+  let callback = fn
+
+  function debounced() {
+      // 保存作用域
+      let context = this
+      // 保存参数，例如 event 对象
+      let args = arguments
+
+      clearTimeout(timerId)
+      timerId = setTimeout(function() {            
+          callback.apply(context, args)
+      }, wait)
+  }
+  
+  // 返回一个闭包
+  return debounced  
+}
+
+function filterRowsByKeyword(keyword, isRegex, isSensitive) {
+  debounce(filterRows, 1000)(keyword, highlightClass)
+}
+
 function popOver(element) {
   let div = document.createElement('div')
+  let input = document.createElement('input')
+
+  input.type = 'text'
+  input.placeholder = 'Filter'
+  input.id = 'tm-input-filter'
+  input.style.cssText = 'color: black; width: 80%; height: 30px; font-size: 14px;'
+
+  div.appendChild(input)
   element.parentNode.appendChild(div)
 
-  const popperInstance = Popper.createPopper(element, div)
-  popperInstance.update();
+  input.addEventListener('input', (event) => {
+    filterRowsByKeyword(event.target.value, false, false)
+    // console.log(event.target.value)
+  })
+
+  // const popperInstance = Popper.createPopper(element, div)
+  // popperInstance.update();
 }
 
 function findAllTables(table) {
@@ -114,7 +156,7 @@ function addArrowForTable(table) {
   if (table == null) { return }
 
   let rows = table.querySelectorAll('tr')
-  if (rows.length == 0) {
+  if (rows.length < maxTriggerRowsLength) {
     // No entires -> Observe once tr added for this table
 
     let options = { childList: true, subtree: true }
@@ -185,7 +227,8 @@ function addArrowForTable(table) {
 
       let highlights = table.getElementsByClassName(highlightClass)
       for (let i = 0; i < highlights.length; i += 1) {
-        highlights[i].style.background = ''
+        // highlights[i].style.background = ''
+        highlights[i].classList.remove(highlightClass)
       }
 
       // event.target.style.background = ''
