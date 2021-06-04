@@ -9,10 +9,43 @@ chrome.runtime.onMessage.addListener(
   }
 )
 
-function filterRows(filterInputValue, targetClass) {
-  console.log(filterInputValue)
-  var tds = document.getElementsByClassName(targetClass)
-  for (var i = 0; i < tds.length; i += 1) {
+function filterRows(table, index, filterInputValue) {
+  filterInputValue = filterInputValue.trim()
+
+  let tds = table.getElementsByClassName(highlightClass(index))
+
+  if (filterInputValue.trim() == '') {
+    // Clear
+
+    for (let i = 0; i < tds.length; i += 1) {
+      // Removed class
+      tds[i].classList.remove(highlightClass(index))
+
+      // If hidden and no other highlight class
+      if (tds[i].parentNode.style.display == 'none'
+       && Array.from(tds[i].classList).filter(className => className.startsWith(highlightClass())).length == 0) {
+        tds[i].parentNode.style.display = ''
+      }
+
+      // content = tds[i].innerHTML
+
+      // if (content.indexOf(filterInputValue) == -1) {
+      //   tds[i].parentNode.style.display = 'none'
+      //   // tds[i].parentNode.style.background = 'red'
+      // } else {
+      //   tds[i].parentNode.style.display = ''
+      // }
+    }
+
+    return
+  }
+
+  // Filter
+
+
+
+
+  for (let i = 0; i < tds.length; i += 1) {
     content = tds[i].innerHTML
     if (content.indexOf(filterInputValue) == -1) {
       tds[i].parentNode.style.display = 'none'
@@ -20,7 +53,7 @@ function filterRows(filterInputValue, targetClass) {
     } else {
       tds[i].parentNode.style.display = ''
     }
-  }  
+  }
 }
 
 // function filterRows(filterInputValue) {
@@ -53,7 +86,7 @@ function filterRows(filterInputValue, targetClass) {
 // let tableObservers = []
 
 let headerMouseEnterTimer = null
-let highlightClass = 'tm-highlight-cells'
+// let highlightClass = 'tm-highlight-cells'
 let maxTriggerRowsLength = 3
 
 // --- Functions ---
@@ -70,6 +103,15 @@ function tableAdded(table) {
 //   tr.style.background = 'red'
 // }
 
+function highlightClass(number) {
+  let highlightClassName = 'tm-highlight-cells'
+  if (number == undefined) {
+    return highlightClassName
+  }
+
+  return highlightClassName + '-' + number
+}
+
 function highlightColumn(table, cell) {
   let cells = table.querySelectorAll(cell.nodeName.toLowerCase())
   let num = Array.prototype.indexOf.call(cells, cell)
@@ -82,7 +124,7 @@ function highlightColumn(table, cell) {
       continue
     }
     // target.style.background = 'red'
-    target.classList.add(highlightClass)
+    target.classList.add(highlightClass(num))
   }
 }
 
@@ -107,11 +149,11 @@ function debounce(fn, wait) {
   return debounced  
 }
 
-function filterRowsByKeyword(keyword, isRegex, isSensitive) {
-  debounce(filterRows, 1000)(keyword, highlightClass)
+function filterRowsByKeyword(table, index, keyword, isRegex, isSensitive) {
+  debounce(filterRows, 1000)(table, index, keyword)
 }
 
-function popOver(element) {
+function popOver(element, table, index) {
   let div = document.createElement('div')
   let input = document.createElement('input')
 
@@ -124,7 +166,7 @@ function popOver(element) {
   element.parentNode.appendChild(div)
 
   input.addEventListener('input', (event) => {
-    filterRowsByKeyword(event.target.value, false, false)
+    filterRowsByKeyword(table, index, event.target.value, false, false)
     // console.log(event.target.value)
     if (event.target.value.trim() !== '') {
       // Not empty
@@ -214,7 +256,7 @@ function addArrowForTable(table) {
           console.log('click')
 
           // TODO
-          popOver(event.target)
+          popOver(event.target, table, i)
         })
         event.target.appendChild(div)
 
@@ -233,11 +275,12 @@ function addArrowForTable(table) {
         }
       }
 
-      let highlights = table.getElementsByClassName(highlightClass)
-      for (let i = 0; i < highlights.length; i += 1) {
-        // highlights[i].style.background = ''
-        highlights[i].classList.remove(highlightClass)
-      }
+      // let highlights = table.getElementsByClassName(highlightClass)
+      // for (let i = 0; i < highlights.length; i += 1) {
+      //   // highlights[i].style.background = ''
+      //   highlights[i].classList.remove(highlightClass)
+      //   console.log(highlights[i].classList)
+      // }
 
       // event.target.style.background = ''
     }, false)
