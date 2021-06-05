@@ -12,46 +12,35 @@ chrome.runtime.onMessage.addListener(
 function filterRows(table, index, filterInputValue) {
   filterInputValue = filterInputValue.trim()
 
-  let tds = table.getElementsByClassName(highlightClass(index))
-
-  if (filterInputValue.trim() == '') {
-    // Clear
-
-    for (let i = 0; i < tds.length; i += 1) {
-      // Removed class
-      tds[i].classList.remove(highlightClass(index))
-
-      // If hidden and no other highlight class
-      if (tds[i].parentNode.style.display == 'none'
-       && Array.from(tds[i].classList).filter(className => className.startsWith(highlightClass())).length == 0) {
-        tds[i].parentNode.style.display = ''
-      }
-
-      // content = tds[i].innerHTML
-
-      // if (content.indexOf(filterInputValue) == -1) {
-      //   tds[i].parentNode.style.display = 'none'
-      //   // tds[i].parentNode.style.background = 'red'
-      // } else {
-      //   tds[i].parentNode.style.display = ''
-      // }
-    }
-
-    return
+  console.log(index)
+  
+  let tableID = table.getAttribute('data-tm-id')
+  if (filterInputValue == '') {
+    delete filterMap[tableID][index]
+  } else {
+    filterMap[tableID][index] = filterInputValue
   }
 
-  // Filter
+  let trs = table.querySelectorAll('tr')
 
+  for (let i = 1; i < trs.length; i += 1) { // tr iteration
+    // Start from the second?
 
+    let tds = trs[i].querySelectorAll('td')
+    let shouldHide = false
 
+    for (let map in filterMap[tableID]) {
+      content = tds[map].innerHTML
+      if (content.indexOf(filterMap[tableID][map]) == -1) {
+        // NOT find it
+        shouldHide = true
+      }
+    }
 
-  for (let i = 0; i < tds.length; i += 1) {
-    content = tds[i].innerHTML
-    if (content.indexOf(filterInputValue) == -1) {
-      tds[i].parentNode.style.display = 'none'
-      // tds[i].parentNode.style.background = 'red'
+    if (shouldHide) {
+      trs[i].style.display = 'none'
     } else {
-      tds[i].parentNode.style.display = ''
+      trs[i].style.display = ''
     }
   }
 }
@@ -86,15 +75,20 @@ function filterRows(table, index, filterInputValue) {
 // let tableObservers = []
 
 let headerMouseEnterTimer = null
-// let highlightClass = 'tm-highlight-cells'
-let maxTriggerRowsLength = 3
+let filterMap = {}
+let tableIndex = 0
+
+const highlightClass = 'tm-highlight-cells'
+const maxTriggerRowsLength = 3
 
 // --- Functions ---
 
 function tableAdded(table) {
   console.log('tableAdded')
 
-  findAllTables(table)
+  let tableID = 'tm-id-' + Object.keys(filterMap).length
+  table.setAttribute('data-tm-id', tableID)
+  filterMap[tableID] = {}
 }
 
 // function trAdded(tr) {
@@ -103,14 +97,14 @@ function tableAdded(table) {
 //   tr.style.background = 'red'
 // }
 
-function highlightClass(number) {
-  let highlightClassName = 'tm-highlight-cells'
-  if (number == undefined) {
-    return highlightClassName
-  }
+// function highlightClass(isTr, isHide) {
+//   let highlightClassName = 'tm-highlight-cells'
+//   if (isTr == undefined) {
+//     return highlightClassName
+//   }
 
-  return highlightClassName + '-' + number
-}
+//   return highlightClassName + (isHide ? '-hide' : '-visi') + (isTr ? '-tr' : '-td')
+// }
 
 function highlightColumn(table, cell) {
   let cells = table.querySelectorAll(cell.nodeName.toLowerCase())
@@ -124,7 +118,7 @@ function highlightColumn(table, cell) {
       continue
     }
     // target.style.background = 'red'
-    target.classList.add(highlightClass(num))
+    target.classList.add(highlightClass)
   }
 }
 
@@ -168,7 +162,7 @@ function popOver(element, table, index) {
   input.addEventListener('input', (event) => {
     filterRowsByKeyword(table, index, event.target.value, false, false)
     // console.log(event.target.value)
-    if (event.target.value.trim() !== '') {
+    if (event.target.value.trim() != '') {
       // Not empty
       element.innerHTML = "🔍"
     } else {
@@ -181,24 +175,20 @@ function popOver(element, table, index) {
 }
 
 function findAllTables(table) {
-  let tables
-  if (table != null) {
-    tables = [table]
-  } else {
-    tables = document.getElementsByTagName('table')
-  }
+  let tables = table == undefined ? document.getElementsByTagName('table') : [table]
 
   for (let i = 0; i < tables.length; i += 1) {
-    addArrowForTable(tables[i])
+    tableAdded(tables[i])
+    observeTable(tables[i])
   }
 }
 
-function addArrowForTable(table) {
+function observeTable(table) {
   let containerClass = 'tm-mouse-over-container'
 
   function _disconnectThenRetry(observer, table) {
     observer.disconnect()   // Get first tr -> header
-    addArrowForTable(table) // Add it again
+    observeTable(table) // Add it again
   }
 
   if (table == null) { return }
@@ -275,12 +265,11 @@ function addArrowForTable(table) {
         }
       }
 
-      // let highlights = table.getElementsByClassName(highlightClass)
-      // for (let i = 0; i < highlights.length; i += 1) {
-      //   // highlights[i].style.background = ''
-      //   highlights[i].classList.remove(highlightClass)
-      //   console.log(highlights[i].classList)
-      // }
+      let highlights = table.getElementsByClassName(highlightClass)
+      while (highlights.length > 0) {
+        // highlights[0].style.background = ''
+        highlights[0].classList.remove(highlightClass)
+      }
 
       // event.target.style.background = ''
     }, false)
@@ -291,7 +280,7 @@ function startObserveWebPage() {
   console.log('startObserveWebPage')
 
   // Find table that already loaded
-  findAllTables(null)
+  findAllTables()
 
   // Observe new table inserted
   let target = document.getElementsByTagName('body')[0]
@@ -306,12 +295,12 @@ function startObserveWebPage() {
 
         // 1. Try to find added <table>
         if (addedNode.nodeName.toLowerCase() == 'table') {
-          tableAdded(addedNode)
+          findAllTables(addedNode)
         } else if (addedNode.querySelectorAll != undefined) {
           // 2. Try to find inner <table>
           let tables = addedNode.querySelectorAll('table')
           for (let k = 0; k < tables.length; k += 1) {
-            tableAdded(tables[k])
+            findAllTables(addedNode)
           }
         }
       }
