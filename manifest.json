@@ -20,8 +20,7 @@
 		{
 		  "matches": ["*://*/**"],
 		  "js": [
-			"/script/content-script.js",
-			"/script/oth/popper.min.js"
+			"/script/content-script.js"
 		  ],
 		  "all_frames": true
 		}
