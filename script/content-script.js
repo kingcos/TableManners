@@ -148,16 +148,16 @@ function filterRowsByKeyword(table, index, keyword, isRegex, isSensitive) {
 }
 
 function popOver(element, table, index) {
-  let div = document.createElement('div')
-  let input = document.createElement('input')
+  // let div = document.createElement('div')
+  // let input = document.createElement('input')
 
-  input.type = 'text'
-  input.placeholder = 'Filter'
-  input.id = 'tm-input-filter'
-  input.style.cssText = 'color: black; width: 80%; height: 30px; font-size: 14px;'
+  // input.type = 'text'
+  // input.placeholder = 'Filter'
+  // input.id = 'tm-input-filter'
+  // input.style.cssText = 'color: black; width: 80%; height: 30px; font-size: 14px;'
 
-  div.appendChild(input)
-  element.parentNode.appendChild(div)
+  // div.appendChild(input)
+  // element.parentNode.appendChild(div)
 
   input.addEventListener('input', (event) => {
     filterRowsByKeyword(table, index, event.target.value, false, false)
@@ -166,12 +166,12 @@ function popOver(element, table, index) {
       // Not empty
       element.innerHTML = "🔍"
     } else {
-      element.innerHTML = "⬇️"
+      element.innerHTML = "▼"
     }
   })
 
   // const popperInstance = Popper.createPopper(element, div)
-  // popperInstance.update();
+  // popperInstance.update()
 }
 
 function findAllTables(table) {
@@ -244,7 +244,7 @@ function observeTable(table) {
         let div = document.createElement('div')
         div.setAttribute('class', containerClass)
         div.style.cssText = 'position: absolute; right: 0; top: 50%; transform: translateY(-50%); font-size: 14px;'
-        div.appendChild(document.createTextNode('⬇️'))
+        div.appendChild(document.createTextNode('▼'))
         div.addEventListener('click', (event) => {
           console.log('click')
 
@@ -257,7 +257,7 @@ function observeTable(table) {
           }
 
           // TODO
-          // popOver(event.target, table, i)
+          popOver(event.target, table, i)
         })
         event.target.appendChild(div)
 
@@ -295,7 +295,7 @@ function createHtmlString(id) {
                 <div style="background-color: #fff;background-clip: padding-box;border-radius: 2px;box-shadow: 0 3px 6px -4px rgb(0 0 0 / 12%), 0 6px 16px 0 rgb(0 0 0 / 8%), 0 9px 28px 8px rgb(0 0 0 / 5%);box-shadow: 0 0 8px rgba(0,0,0,.15)/9;">
                     <div style="margin: 0;padding: 8px 16px;color: rgba(0,0,0,.85);font-weight: 500;border-bottom: 1px solid #f0f0f0;display: flex;align-items: center;justify-content: space-between;">
                         <div>
-                            Title
+                            请输入关键词
                         </div>
                         <div>
                             🔒
@@ -305,7 +305,7 @@ function createHtmlString(id) {
                         <div style="border: 1px solid #000;padding: 5px;border-radius: 5px;">
                             <div style="display: flex;align-items: center;justify-content: space-between;">
                                 <div>
-                                    <input type="text" placeholder="filter key" name="" style="border: 0;height: 30px;">
+                                    <input type="text" placeholder="filter key" name="" style="border: 0;height: 30px; outline:none;">
                                 </div>
                                 <div style="text-align: center; width: 25px;">
                                     Aa
