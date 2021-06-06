@@ -13,6 +13,8 @@ TableManner，是一款服务于网页中 `<table>` 表格的浏览器插件。
 
 </details>
 
+- Co-Author: [lemongranule](https://github.com/lemongranule)
+
 ## Feature List
 
 - [x] Filter rows by keywords
