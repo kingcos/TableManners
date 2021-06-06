@@ -9,118 +9,7 @@ chrome.runtime.onMessage.addListener(
   }
 )
 
-function filterRows(table, index, filterInputValue) {
-  filterInputValue = filterInputValue.trim()
-
-  console.log(index)
-  
-  let tableID = table.getAttribute('data-tm-id')
-  if (filterInputValue == '') {
-    delete filterMap[tableID][index]
-  } else {
-    filterMap[tableID][index] = filterInputValue
-  }
-
-  let trs = table.querySelectorAll('tr')
-
-  for (let i = 1; i < trs.length; i += 1) { // tr iteration
-    // Start from the second?
-
-    let tds = trs[i].querySelectorAll('td')
-    let shouldHide = false
-
-    for (let map in filterMap[tableID]) {
-      content = tds[map].innerHTML
-      if (content.indexOf(filterMap[tableID][map]) == -1) {
-        // NOT find it
-        shouldHide = true
-      }
-    }
-
-    if (shouldHide) {
-      trs[i].style.display = 'none'
-    } else {
-      trs[i].style.display = ''
-    }
-  }
-}
-
-// function filterRows(filterInputValue) {
-//     var rows = document.getElementsByClassName('mtd-table-row')
-//     for (var i = 0; i < rows.length; i += 1) {
-//         content = rows[i].getElementsByClassName('mtd-table-cell')[1].innerHTML
-//         if (content.indexOf(filterInputValue) == -1) {
-//             // rows[i].parentNode.removeChild(rows[i])
-//             // i -= 1
-// 			      rows[i].style.display = 'none'
-//         } else {
-// 			      rows[i].style.display = ''
-//         }
-//     }
-// }
-
-// chrome.runtime.onMessage.addListener(
-//   function(request, sender, sendResponse) {
-//     console.log(request.action)
-//   }
-// )
-
-// -----------
-
-
-
 // --- Generic Functions ---
-
-// --- Variables ---
-// let tableObservers = []
-
-let headerMouseEnterTimer = null
-let filterMap = {}
-let tableIndex = 0
-
-const highlightClass = 'tm-highlight-cells'
-const maxTriggerRowsLength = 3
-
-// --- Functions ---
-
-function tableAdded(table) {
-  console.log('tableAdded')
-
-  let tableID = 'tm-id-' + Object.keys(filterMap).length
-  table.setAttribute('data-tm-id', tableID)
-  filterMap[tableID] = {}
-}
-
-// function trAdded(tr) {
-//   console.log('trAdded')
-
-//   tr.style.background = 'red'
-// }
-
-// function highlightClass(isTr, isHide) {
-//   let highlightClassName = 'tm-highlight-cells'
-//   if (isTr == undefined) {
-//     return highlightClassName
-//   }
-
-//   return highlightClassName + (isHide ? '-hide' : '-visi') + (isTr ? '-tr' : '-td')
-// }
-
-function highlightColumn(table, cell) {
-  let cells = table.querySelectorAll(cell.nodeName.toLowerCase())
-  let num = Array.prototype.indexOf.call(cells, cell)
-  let rows = table.querySelectorAll('tr')
-
-  for (let i = 1; i < rows.length; i += 1) {
-    let target = rows[i].querySelectorAll('th, td')[num]
-    if (target == undefined) {
-      // Fixed for colspan
-      continue
-    }
-    // target.style.background = 'red'
-    target.classList.add(highlightClass)
-  }
-}
 
 let timerId = null
 
@@ -143,59 +32,91 @@ function debounce(fn, wait) {
   return debounced  
 }
 
-function filterRowsByKeyword(table, index, keyword, isRegex, isSensitive) {
-  debounce(filterRows, 1000)(table, index, keyword)
-}
+// --- Variables ---
+// let tableObservers = []
 
-function popOver(element, table, index) {
-  let popOver = document.getElementById(`tm-popover-${index}`)
-  if (popOver.getAttribute('class') === 'hidden') {
-    // Show
-    popOver.setAttribute("class", "show")
+let headerMouseEnterTimer = null
+let GlobalFilterMap = {}
+let tableIndex = 0
 
-    let input = popOver.querySelector(`#tm-popover-${index}-input`)
+const highlightClass = 'tm-highlight-cells'
+const TriggerRowsMaxLength = 3
+const TableAttKey = 'data-tm-id'
 
-    input.addEventListener('input', (event) => {
-      filterRowsByKeyword(table, index, event.target.value, false, false)
-      // console.log(event.target.value)
-      if (event.target.value.trim() != '') {
-        // Not empty
-        element.innerHTML = "🔍"
-      } else {
-        element.innerHTML = "▼"
+// --- Functions ---
+
+observeAndEnhanceTables()
+// window.onload = observeAndEnhanceTables
+
+function observeAndEnhanceTables() {
+  console.log('- observeAndEnhanceTables -')
+
+  // Find table that already loaded
+  initWithTables(document.getElementsByTagName('table'))
+
+  // Observe new table inserted
+  let target = document.getElementsByTagName('body')[0]
+  let options = { childList: true, subtree: true }
+  let observer = new MutationObserver((mutations) => {
+    // console.log(mutations)
+    for (let i = 0; i < mutations.length; i += 1) {
+      let mutation = mutations[i]
+
+      for (let j = 0; j < mutation.addedNodes.length; j += 1) {
+        let addedNode = mutation.addedNodes[j]
+
+        // 1. Try to find added <table>
+        if (addedNode.nodeName.toLowerCase() == 'table') {
+          initWithTables([addedNode])
+        } else if (addedNode.querySelectorAll != undefined) {
+          // 2. Try to find inner <table>
+          let tables = addedNode.querySelectorAll('table')
+          initWithTables(tables)
+        }
       }
-    })
-  } else {
-    popOver.setAttribute("class", "hidden")
-  }
+    }
+  })
+
+  observer.observe(target, options)
 }
 
-function findAllTables(table) {
-  let tables = table == undefined ? document.getElementsByTagName('table') : [table]
-
+function initWithTables(tables) {
   for (let i = 0; i < tables.length; i += 1) {
-    tableAdded(tables[i])
-    observeTable(tables[i])
+    let table = tables[i]
+
+    // if (table.getAttribute(TableAttKey) != null) {
+    //   console.error('This should not happen.')
+    //   continue
+    // }
+
+    let dataId = `tm-id-${Object.keys(GlobalFilterMap).length}`
+    tables[i].setAttribute(TableAttKey, dataId)
+    GlobalFilterMap[dataId] = {}
+
+    enhanceTable(table)
   }
 }
 
-function observeTable(table) {
+function enhanceTable(table) {
   let containerClass = 'tm-mouse-over-container'
 
   function _disconnectThenRetry(observer, table) {
-    observer.disconnect()   // Get first tr -> header
-    observeTable(table) // Add it again
+    observer.disconnect() // Get the first tr as header
+    enhanceTable(table)   // Retry
   }
 
-  if (table == null) { return }
+  // if (table == null) { 
+  //   console.error('This should not happen.')
+  //   return
+  // }
 
   let rows = table.querySelectorAll('tr')
-  if (rows.length < maxTriggerRowsLength) {
-    // No entires -> Observe once tr added for this table
+
+  if (rows.length < TriggerRowsMaxLength) {
+    // rows lenth too less -> Observe once tr added for this table
 
     let options = { childList: true, subtree: true }
     let observer = new MutationObserver((mutations) => {
-      // console.log(mutations)
       for (let i = 0; i < mutations.length; i += 1) {
         let mutation = mutations[i]
   
@@ -204,11 +125,9 @@ function observeTable(table) {
           
           if (addedNode.nodeName.toLowerCase() == 'tr') {
             return _disconnectThenRetry(observer, table)
-          } else if (addedNode.querySelectorAll != undefined) {
-            let trs = addedNode.querySelectorAll('tr')
-            if (trs.length > 0) {
-              return _disconnectThenRetry(observer, table)
-            }
+          } else if (addedNode.querySelectorAll != undefined
+                  && addedNode.querySelectorAll('tr').length > 0) {
+            return _disconnectThenRetry(observer, table)
           }
         }
       }
@@ -219,9 +138,12 @@ function observeTable(table) {
     return
   }
 
-  // Add arrow for first row
+  // --- Rows length is already satisified ---
+
+  // Add an indicator for header
   let head = rows[0]
   let cells = head.querySelectorAll('th, td')
+  
   if (cells.length == 0) { return }
 
   for (let i = 0; i < cells.length; i += 1) {
@@ -230,24 +152,20 @@ function observeTable(table) {
     // When mouse enter, wait then apply it
     cell.addEventListener('mouseenter', (event) => {
       headerMouseEnterTimer = setTimeout(() => {
-        highlightColumn(table, event.target)
+        handleColumn(table, i)
 
-        event.target.style.position = 'relative';
-
-        //add
         createPopoverForCell(cell, i)
 
-        let div = document.createElement('div')
-        div.setAttribute('class', containerClass)
-        div.style.cssText = 'position: absolute; right: 0; top: 50%; transform: translateY(-50%); font-size: 14px;'
-        div.appendChild(document.createTextNode('▼'))
-        div.addEventListener('click', (event) => {
-          console.log('click')
+        let indicator = document.createElement('div')
+        indicator.setAttribute('class', containerClass)
+        indicator.style.cssText = 'position: absolute; right: 0; top: 50%; transform: translateY(-50%); font-size: 14px;'
+        indicator.appendChild(document.createTextNode('▼'))
 
-          // TODO
-          popOver(event.target, table, i)
+        event.target.appendChild(indicator)
+        event.target.style.position = 'relative'
+        event.target.addEventListener('click', (event) => {
+          popOver(indicator, table, event.target, i)
         })
-        event.target.appendChild(div)
 
         // event.target.style.background = 'red'
       }, 300)
@@ -275,14 +193,28 @@ function observeTable(table) {
   } 
 }
 
-//add
+function handleColumn(table, colIndex) {
+  let rows = table.querySelectorAll('tr')
+
+  // Skipped for the first line
+  for (let i = 1; i < rows.length; i += 1) {
+    let target = rows[i].querySelectorAll('th, td')[colIndex]
+    if (target == undefined) {
+      // Fixed for colspan
+      continue
+    }
+    // target.style.background = 'red'
+    target.classList.add(highlightClass)
+  }
+}
+
 function createPopoverForCell(cell, index) {
   if (cell.querySelector('#tm-popover-' + index) != null) {
     return
   }
 
   cell.innerHTML += `
-      <div id="tm-popover-${index}" class="hidden" style="position: absolute;left: 50%;top: 0;transform: translate(-50%,-100%);z-index: 99;padding: 5px;">
+      <div id="tm-popover-${index}" class="tm-hidden" style="position: absolute;left: 50%;top: 0;transform: translate(-50%,-100%);z-index: 99;padding: 5px;  .hidden { display: none; } .show { display: ''; }">
           <div style="text-align: left;">
               <div style="background-color: #fff;background-clip: padding-box;border-radius: 2px;box-shadow: 0 3px 6px -4px rgb(0 0 0 / 12%), 0 6px 16px 0 rgb(0 0 0 / 8%), 0 9px 28px 8px rgb(0 0 0 / 5%);box-shadow: 0 0 8px rgba(0,0,0,.15)/9;">
                   <div style="margin: 0;padding: 8px 16px;color: rgba(0,0,0,.85);font-weight: 500;border-bottom: 1px solid #f0f0f0;display: flex;align-items: center;justify-content: space-between;">
@@ -314,38 +246,67 @@ function createPopoverForCell(cell, index) {
   `
 }
 
-function startObserveWebPage() {
-  console.log('startObserveWebPage')
+function popOver(element, table, cell, index) {
+  let popOver = document.getElementById(`tm-popover-${index}`)
+  if (popOver.getAttribute('class') === 'hidden') {
+    // Show
+    element.innerText = "▲"
+    popOver.setAttribute("class", "show")
 
-  // Find table that already loaded
-  findAllTables()
+    let input = popOver.querySelector(`#tm-popover-${index}-input`)
 
-  // Observe new table inserted
-  let target = document.getElementsByTagName('body')[0]
-  let options = { childList: true, subtree: true }
-  let observer = new MutationObserver((mutations) => {
-    // console.log(mutations)
-    for (let i = 0; i < mutations.length; i += 1) {
-      let mutation = mutations[i]
-
-      for (let j = 0; j < mutation.addedNodes.length; j += 1) {
-        let addedNode = mutation.addedNodes[j]
-
-        // 1. Try to find added <table>
-        if (addedNode.nodeName.toLowerCase() == 'table') {
-          findAllTables(addedNode)
-        } else if (addedNode.querySelectorAll != undefined) {
-          // 2. Try to find inner <table>
-          let tables = addedNode.querySelectorAll('table')
-          for (let k = 0; k < tables.length; k += 1) {
-            findAllTables(addedNode)
-          }
-        }
+    input.addEventListener('input', (event) => {
+      filterRowsByKeyword(table, index, event.target.value, false, false)
+      // console.log(event.target.value)
+      if (event.target.value.trim() != '') {
+        // Not empty
+        element.innerHTML = "🔍"
+      } else {
+        element.innerHTML = "▼"
       }
-    }
-  })
-
-  observer.observe(target, options)
+    })
+  } else {
+    element.innerText = "▼"
+    popOver.setAttribute("class", "hidden")
+  }
 }
 
-window.onload = startObserveWebPage
+function filterRowsByKeyword(table, index, keyword, isRegex, isSensitive) {
+  debounce(filterRows, 1000)(table, index, keyword)
+}
+
+function filterRows(table, index, filterInputValue) {
+  filterInputValue = filterInputValue.trim()
+
+  console.log(index)
+  
+  let tableID = table.getAttribute(TableAttKey)
+  if (filterInputValue == '') {
+    delete GlobalFilterMap[tableID][index]
+  } else {
+    GlobalFilterMap[tableID][index] = filterInputValue
+  }
+
+  let trs = table.querySelectorAll('tr')
+
+  for (let i = 1; i < trs.length; i += 1) { // tr iteration
+    // Start from the second?
+
+    let tds = trs[i].querySelectorAll('td')
+    let shouldHide = false
+
+    for (let map in GlobalFilterMap[tableID]) {
+      content = tds[map].innerHTML
+      if (content.indexOf(GlobalFilterMap[tableID][map]) == -1) {
+        // NOT find it
+        shouldHide = true
+      }
+    }
+
+    if (shouldHide) {
+      trs[i].style.display = 'none'
+    } else {
+      trs[i].style.display = ''
+    }
+  }
+}
