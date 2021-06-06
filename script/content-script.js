@@ -9,6 +9,12 @@ chrome.runtime.onMessage.addListener(
   }
 )
 
+//添加css
+let style = document.createElement('style');
+style.type = 'text/css';
+style.innerHTML=".hidden{ display: none; } .show{ display: ''; }";
+document.getElementsByTagName('HEAD').item(0).appendChild(style);
+
 // --- Generic Functions ---
 
 let timerId = null
