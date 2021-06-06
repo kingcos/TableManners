@@ -148,30 +148,26 @@ function filterRowsByKeyword(table, index, keyword, isRegex, isSensitive) {
 }
 
 function popOver(element, table, index) {
-  // let div = document.createElement('div')
-  // let input = document.createElement('input')
+  let popOver = document.getElementById(`tm-popover-${index}`)
+  if (popOver.getAttribute('class') === 'hidden') {
+    // Show
+    popOver.setAttribute("class", "show")
 
-  // input.type = 'text'
-  // input.placeholder = 'Filter'
-  // input.id = 'tm-input-filter'
-  // input.style.cssText = 'color: black; width: 80%; height: 30px; font-size: 14px;'
+    let input = popOver.querySelector(`#tm-popover-${index}-input`)
 
-  // div.appendChild(input)
-  // element.parentNode.appendChild(div)
-
-  input.addEventListener('input', (event) => {
-    filterRowsByKeyword(table, index, event.target.value, false, false)
-    // console.log(event.target.value)
-    if (event.target.value.trim() != '') {
-      // Not empty
-      element.innerHTML = "🔍"
-    } else {
-      element.innerHTML = "▼"
-    }
-  })
-
-  // const popperInstance = Popper.createPopper(element, div)
-  // popperInstance.update()
+    input.addEventListener('input', (event) => {
+      filterRowsByKeyword(table, index, event.target.value, false, false)
+      // console.log(event.target.value)
+      if (event.target.value.trim() != '') {
+        // Not empty
+        element.innerHTML = "🔍"
+      } else {
+        element.innerHTML = "▼"
+      }
+    })
+  } else {
+    popOver.setAttribute("class", "hidden")
+  }
 }
 
 function findAllTables(table) {
@@ -239,7 +235,7 @@ function observeTable(table) {
         event.target.style.position = 'relative';
 
         //add
-        cell.innerHTML += createHtmlString(i)
+        createPopoverForCell(cell, i)
 
         let div = document.createElement('div')
         div.setAttribute('class', containerClass)
@@ -247,14 +243,6 @@ function observeTable(table) {
         div.appendChild(document.createTextNode('▼'))
         div.addEventListener('click', (event) => {
           console.log('click')
-
-          //add
-          let dom = document.getElementById(`${i}`);
-          if (dom.getAttribute('class') === 'hidden') {
-              dom.setAttribute("class", "show");
-          } else {
-              dom.setAttribute("class", "hidden");
-          }
 
           // TODO
           popOver(event.target, table, i)
@@ -288,38 +276,42 @@ function observeTable(table) {
 }
 
 //add
-function createHtmlString(id) {
-    return `
-        <div id="${id}" class="hidden" style="position: absolute;left: 50%;top: 0;transform: translate(-50%,-100%);z-index: 99;padding: 5px;">
-            <div style="text-align: left;">
-                <div style="background-color: #fff;background-clip: padding-box;border-radius: 2px;box-shadow: 0 3px 6px -4px rgb(0 0 0 / 12%), 0 6px 16px 0 rgb(0 0 0 / 8%), 0 9px 28px 8px rgb(0 0 0 / 5%);box-shadow: 0 0 8px rgba(0,0,0,.15)/9;">
-                    <div style="margin: 0;padding: 8px 16px;color: rgba(0,0,0,.85);font-weight: 500;border-bottom: 1px solid #f0f0f0;display: flex;align-items: center;justify-content: space-between;">
-                        <div>
-                            请输入关键词
+function createPopoverForCell(cell, index) {
+  if (cell.querySelector('#tm-popover-' + index) != null) {
+    return
+  }
+
+  cell.innerHTML += `
+      <div id="tm-popover-${index}" class="hidden" style="position: absolute;left: 50%;top: 0;transform: translate(-50%,-100%);z-index: 99;padding: 5px;">
+          <div style="text-align: left;">
+              <div style="background-color: #fff;background-clip: padding-box;border-radius: 2px;box-shadow: 0 3px 6px -4px rgb(0 0 0 / 12%), 0 6px 16px 0 rgb(0 0 0 / 8%), 0 9px 28px 8px rgb(0 0 0 / 5%);box-shadow: 0 0 8px rgba(0,0,0,.15)/9;">
+                  <div style="margin: 0;padding: 8px 16px;color: rgba(0,0,0,.85);font-weight: 500;border-bottom: 1px solid #f0f0f0;display: flex;align-items: center;justify-content: space-between;">
+                      <div>
+                          请输入关键词
+                      </div>
+                      <div>
+                          🔒
+                      </div>
+                  </div>
+                  <div id="tm-popover-${index}-input" style="padding: 12px 16px;color: rgba(0,0,0,.85);">
+                      <div style="border: 1px solid #000;padding: 5px;border-radius: 5px;">
+                          <div style="display: flex;align-items: center;justify-content: space-between;">
+                              <div>
+                                  <input type="text" placeholder="filter key" name="" style="border: 0;height: 30px; outline:none;">
+                              </div>
+                              <div style="text-align: center; width: 25px;">
+                                  Aa
+                              </div>
+                              <div style="text-align: center; width: 25px;">
+                                  .*
+                              </div>
+                          </div>
                         </div>
-                        <div>
-                            🔒
-                        </div>
-                    </div>
-                    <div style="padding: 12px 16px;color: rgba(0,0,0,.85);">
-                        <div style="border: 1px solid #000;padding: 5px;border-radius: 5px;">
-                            <div style="display: flex;align-items: center;justify-content: space-between;">
-                                <div>
-                                    <input type="text" placeholder="filter key" name="" style="border: 0;height: 30px; outline:none;">
-                                </div>
-                                <div style="text-align: center; width: 25px;">
-                                    Aa
-                                </div>
-                                <div style="text-align: center; width: 25px;">
-                                    .*
-                                </div>
-                            </div>
-                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `
+                  </div>
+              </div>
+          </div>
+      </div>
+  `
 }
 
 function startObserveWebPage() {
