@@ -168,8 +168,9 @@ function enhanceTable(table) {
         indicator.appendChild(document.createTextNode('▼'))
 
         event.target.appendChild(indicator)
+        
         event.target.style.position = 'relative'
-        event.target.addEventListener('click', (event) => {
+        indicator.addEventListener('click', (event) => {
           popOver(indicator, table, event.target, i)
         })
 
@@ -220,7 +221,8 @@ function createPopoverForCell(cell, index) {
   }
 
   cell.innerHTML += `
-      <div id="tm-popover-${index}" class="tm-hidden" style="position: absolute;left: 50%;top: 0;transform: translate(-50%,-100%);z-index: 99;padding: 5px;  .hidden { display: none; } .show { display: ''; }">
+      <div id="tm-popover-${index}" class="tm-hidden" style="position: absolute;left: 50%;top: 0;transform: translate(-50%,-100%);z-index: 99;padding: 5px;">
+          <style type="text/css">.tm-hidden { display: none; } .tm-show { display: ''; }</style>
           <div style="text-align: left;">
               <div style="background-color: #fff;background-clip: padding-box;border-radius: 2px;box-shadow: 0 3px 6px -4px rgb(0 0 0 / 12%), 0 6px 16px 0 rgb(0 0 0 / 8%), 0 9px 28px 8px rgb(0 0 0 / 5%);box-shadow: 0 0 8px rgba(0,0,0,.15)/9;">
                   <div style="margin: 0;padding: 8px 16px;color: rgba(0,0,0,.85);font-weight: 500;border-bottom: 1px solid #f0f0f0;display: flex;align-items: center;justify-content: space-between;">
@@ -253,11 +255,18 @@ function createPopoverForCell(cell, index) {
 }
 
 function popOver(element, table, cell, index) {
+  console.log('----')
   let popOver = document.getElementById(`tm-popover-${index}`)
-  if (popOver.getAttribute('class') === 'hidden') {
+  if (popOver.getAttribute('class') == 'tm-hidden') {
+    // Hide last
+    let shownPopOvers = document.getElementsByClassName('tm-show')
+    for (let i = 0; i < shownPopOvers.length; i += 1) {
+      shownPopOvers[i].setAttribute("class", "tm-hidden")
+    }
+    
     // Show
     element.innerText = "▲"
-    popOver.setAttribute("class", "show")
+    popOver.setAttribute("class", "tm-show")
 
     let input = popOver.querySelector(`#tm-popover-${index}-input`)
 
@@ -273,7 +282,7 @@ function popOver(element, table, cell, index) {
     })
   } else {
     element.innerText = "▼"
-    popOver.setAttribute("class", "hidden")
+    popOver.setAttribute("class", "tm-hidden")
   }
 }
 
