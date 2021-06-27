@@ -74,10 +74,14 @@ function observeAndEnhanceTables() {
         // 1. Try to find added <table>
         if (addedNode.nodeName.toLowerCase() == 'table') {
           initWithTables([addedNode])
-        } else if (addedNode.querySelectorAll != undefined) {
-          // 2. Try to find inner <table>
-          let tables = addedNode.querySelectorAll('table')
-          initWithTables(tables)
+        } else {
+          if (addedNode.querySelectorAll != undefined) {
+            // 2. Try to find inner <table>
+            let tables = addedNode.querySelectorAll('table')
+            if (tables.length > 0) {
+              initWithTables(tables)
+            }
+          }
         }
       }
     }
@@ -95,17 +99,33 @@ function initWithTables(tables) {
     //   continue
     // }
 
-    let dataId = `tm-id-${Object.keys(GlobalFilterMap).length}`
-    tables[i].setAttribute(TableAttKey, dataId)
-    GlobalFilterMap[dataId] = {}
+    // Special Tables Logic
+    let theads = table.getElementsByTagName('thead')
+    let tbodys = table.getElementsByTagName('tbody')
+    if (theads.length == 1 && tbodys.length == 0
+     && theads[0].childElementCount == 1
+     && i < tables.length - 1) {
+      // Only have thead (no tbody) && one <tr> && have next table
+      i += 1
 
-    enhanceTable(table)
+      let dataId = `tm-id-${Object.keys(GlobalFilterMap).length}`
+      tables[i].setAttribute(TableAttKey, dataId)
+      GlobalFilterMap[dataId] = {}
+
+      enhanceTable(table, tables[i])
+    } else {
+
+      let dataId = `tm-id-${Object.keys(GlobalFilterMap).length}`
+      tables[i].setAttribute(TableAttKey, dataId)
+      GlobalFilterMap[dataId] = {}
+  
+      enhanceTable(table)
+
+    }
   }
 }
 
-function enhanceTable(table) {
-  let containerClass = 'tm-mouse-over-container'
-
+function enhanceTable(table, nextTable) {
   function _disconnectThenRetry(observer, table) {
     observer.disconnect() // Get the first tr as header
     enhanceTable(table)   // Retry
@@ -117,6 +137,13 @@ function enhanceTable(table) {
   // }
 
   let rows = table.querySelectorAll('tr')
+
+  if (nextTable) {
+    let head = rows[0]
+    addIndicatorAndObserver(table, head, nextTable)
+
+    return
+  }
 
   if (rows.length < TriggerRowsMaxLength) {
     // rows lenth too less -> Observe once tr added for this table
@@ -145,10 +172,15 @@ function enhanceTable(table) {
   }
 
   // --- Rows length is already satisified ---
+  let head = rows[0]
+  addIndicatorAndObserver(table, head)
+}
+
+function addIndicatorAndObserver(table, targetHeader, nextTable) {
+  let containerClass = 'tm-mouse-over-container'
 
   // Add an indicator for header
-  let head = rows[0]
-  let cells = head.querySelectorAll('th, td')
+  let cells = targetHeader.querySelectorAll('th, td')
   
   if (cells.length == 0) { return }
 
@@ -171,7 +203,7 @@ function enhanceTable(table) {
         
         event.target.style.position = 'relative'
         indicator.addEventListener('click', (event) => {
-          popOver(indicator, table, event.target, i)
+          popOver(indicator, table, event.target, i, nextTable)
         })
 
         // event.target.style.background = 'red'
@@ -197,7 +229,7 @@ function enhanceTable(table) {
 
       // event.target.style.background = ''
     }, false)
-  } 
+  }
 }
 
 function handleColumn(table, colIndex) {
@@ -254,8 +286,7 @@ function createPopoverForCell(cell, index) {
   `
 }
 
-function popOver(element, table, cell, index) {
-  console.log('----')
+function popOver(element, table, cell, index, nextTable) {
   let popOver = document.getElementById(`tm-popover-${index}`)
   if (popOver.getAttribute('class') == 'tm-hide') {
     // Hide last
@@ -271,7 +302,7 @@ function popOver(element, table, cell, index) {
     let input = popOver.querySelector(`#tm-popover-${index}-input`)
 
     input.addEventListener('input', (event) => {
-      filterRowsByKeyword(table, index, event.target.value, false, false)
+      filterRowsByKeyword(table, index, event.target.value, false, false, nextTable)
       // console.log(event.target.value)
       if (event.target.value.trim() != '') {
         // Not empty
@@ -286,25 +317,25 @@ function popOver(element, table, cell, index) {
   }
 }
 
-function filterRowsByKeyword(table, index, keyword, isRegex, isSensitive) {
-  debounce(filterRows, 1000)(table, index, keyword)
+function filterRowsByKeyword(table, index, keyword, isRegex, isSensitive, nextTable) {
+  debounce(filterRows, 1000)(table, index, keyword, nextTable)
 }
 
-function filterRows(table, index, filterInputValue) {
+function filterRows(table, index, filterInputValue, nextTable) {
   filterInputValue = filterInputValue.trim()
 
   console.log(index)
   
-  let tableID = table.getAttribute(TableAttKey)
+  let tableID = nextTable ? nextTable.getAttribute(TableAttKey) : table.getAttribute(TableAttKey)
   if (filterInputValue == '') {
     delete GlobalFilterMap[tableID][index]
   } else {
     GlobalFilterMap[tableID][index] = filterInputValue
   }
 
-  let trs = table.querySelectorAll('tr')
+  let trs = nextTable ? nextTable.querySelectorAll('tr') : table.querySelectorAll('tr')
 
-  for (let i = 1; i < trs.length; i += 1) { // tr iteration
+  for (let i = nextTable ? 0 : 1; i < trs.length; i += 1) { // tr iteration
     // Start from the second?
 
     let tds = trs[i].querySelectorAll('td')
