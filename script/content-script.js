@@ -194,7 +194,6 @@ function overrideOverflow(node) {
 
 function addIndicatorAndObserver(table, targetHeader, nextTable) {
   let containerClass = 'tm-mouse-over-container'
-
   // Add an indicator for header
   let cells = targetHeader.querySelectorAll('th, td')
   
@@ -203,6 +202,8 @@ function addIndicatorAndObserver(table, targetHeader, nextTable) {
   for (let i = 0; i < cells.length; i += 1) {
     let cell = cells[i]
 
+    // cell.style.background = 'red'
+
     // When mouse enter, wait then apply it
     cell.addEventListener('mouseenter', (event) => {
       headerMouseEnterTimer = setTimeout(() => {
@@ -210,17 +211,25 @@ function addIndicatorAndObserver(table, targetHeader, nextTable) {
 
         createPopoverForCell(cell, i)
 
-        let indicator = document.createElement('div')
-        indicator.setAttribute('class', containerClass)
-        indicator.style.cssText = 'position: absolute; right: 0; top: 50%; transform: translateY(-50%); font-size: 14px;'
-        indicator.appendChild(document.createTextNode('▼'))
-
-        event.target.appendChild(indicator)
+        let indicator = event.target.getElementsByClassName(containerClass)[0]
+        if (!indicator) {
+          indicator = document.createElement('div')
+          indicator.setAttribute('class', containerClass)
+          indicator.style.cssText = 'position: absolute; right: 0; top: 50%; z-index: 99; transform: translateY(-50%); font-size: 14px; display: block;'
+          indicator.appendChild(document.createTextNode('▼'))
+          event.target.appendChild(indicator)
+          event.target.style.position = 'relative'
+          indicator.addEventListener('click', (event) => {
+            if (nextTable) {
+              popOver(indicator, nextTable, event.target, i, true)
+            } else {
+              popOver(indicator, table, event.target, i)
+            }
+          })
+        }
+        indicator.style.display = 'block'
         
         event.target.style.position = 'relative'
-        indicator.addEventListener('click', (event) => {
-          popOver(indicator, table, event.target, i, nextTable)
-        })
 
         // event.target.style.background = 'red'
       }, 300)
@@ -230,11 +239,16 @@ function addIndicatorAndObserver(table, targetHeader, nextTable) {
     cell.addEventListener('mouseleave', (event) => {
       clearTimeout(headerMouseEnterTimer)
 
-      let divs = event.target.getElementsByClassName(containerClass)
-      for (let i = 0; i < divs.length; i += 1) {
-        if (divs[i].innerHTML != '🔍') {
-          divs[i].parentNode.removeChild(divs[i])
-        }
+      // let indicators = event.target.getElementsByClassName(containerClass)
+      // for (let i = 0; i < indicators.length; i += 1) {
+      //   if (indicators[i].innerHTML != '🔍') {
+      //     indicators[i].parentNode.removeChild(divs[i])
+      //   }
+      // }
+
+      let indicator = event.target.getElementsByClassName(containerClass)[0]
+      if (indicator && indicator.innerHTML && indicator.innerHTML != '🔍') {
+        indicator.style.display = 'none'
       }
 
       let highlights = table.getElementsByClassName(highlightClass)
@@ -302,7 +316,7 @@ function createPopoverForCell(cell, index) {
   `
 }
 
-function popOver(element, table, cell, index, nextTable) {
+function popOver(element, table, cell, index, isSpecial) {
   let popOver = document.getElementById(`tm-popover-${index}`)
   if (popOver.getAttribute('class') == 'tm-hide') {
     // Hide last
@@ -312,46 +326,50 @@ function popOver(element, table, cell, index, nextTable) {
     }
     
     // Show
-    element.innerText = "▲"
+    if (element.innerText == "▼") {
+      element.innerText = "▲"
+    }
     popOver.setAttribute("class", "tm-show")
 
     let input = popOver.querySelector(`#tm-popover-${index}-input`)
 
     input.addEventListener('input', (event) => {
-      filterRowsByKeyword(table, index, event.target.value, false, false, nextTable)
+      filterRowsByKeyword(table, index, event.target.value, false, false, isSpecial)
       // console.log(event.target.value)
       if (event.target.value.trim() != '') {
         // Not empty
         element.innerHTML = "🔍"
       } else {
-        element.innerHTML = "▼"
+        element.innerHTML = "▲"
       }
     })
   } else {
-    element.innerText = "▼"
+    if (element.innerText == "▲") {
+      element.innerText = "▼"
+    }
     popOver.setAttribute("class", "tm-hide")
   }
 }
 
-function filterRowsByKeyword(table, index, keyword, isRegex, isSensitive, nextTable) {
-  debounce(filterRows, 1000)(table, index, keyword, nextTable)
+function filterRowsByKeyword(table, index, keyword, isRegex, isSensitive, isSpecial) {
+  debounce(filterRows, 1000)(table, index, keyword, isSpecial)
 }
 
-function filterRows(table, index, filterInputValue, nextTable) {
+function filterRows(table, index, filterInputValue, isSpecial) {
   filterInputValue = filterInputValue.trim()
 
   console.log(index)
   
-  let tableID = nextTable ? nextTable.getAttribute(TableAttKey) : table.getAttribute(TableAttKey)
+  let tableID = table.getAttribute(TableAttKey)
   if (filterInputValue == '') {
     delete GlobalFilterMap[tableID][index]
   } else {
     GlobalFilterMap[tableID][index] = filterInputValue
   }
 
-  let trs = nextTable ? nextTable.querySelectorAll('tr') : table.querySelectorAll('tr')
+  let trs = table.querySelectorAll('tr')
 
-  for (let i = nextTable ? 0 : 1; i < trs.length; i += 1) { // tr iteration
+  for (let i = isSpecial ? 0 : 1; i < trs.length; i += 1) { // tr iteration
     // Start from the second?
 
     let tds = trs[i].querySelectorAll('td')
