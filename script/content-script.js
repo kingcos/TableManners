@@ -209,7 +209,7 @@ function addIndicatorAndObserver(table, targetHeader, nextTable) {
       headerMouseEnterTimer = setTimeout(() => {
         handleColumn(table, i)
 
-        createPopoverForCell(table, cell, i)
+        createPopoverForCell(nextTable ? nextTable : table, cell, i)
 
         let indicator = event.target.getElementsByClassName(containerClass)[0]
         if (!indicator) {
@@ -293,7 +293,7 @@ function createPopoverForCell(table, cell, index) {
                     <div style="border: 1px solid #000;padding: 5px;border-radius: 5px;">
                         <div style="display: flex;align-items: center;justify-content: space-between;">
                             <div>
-                                <input type="text" placeholder="请输入关键词开始过滤" name="" style="border: 0;height: 30px; outline:none;">
+                                <input type="text" placeholder="请输入关键词开始过滤" name="" style="border: 0;height: 20px; outline:none;">
                             </div>
                         </div>
                       </div>
