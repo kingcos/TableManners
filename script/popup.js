@@ -27,35 +27,91 @@
 //     FILTER: 'FILTER'
 // }
 
-// 过滤按钮
-let getTablesButton = document.getElementById('getTablesButton')
-document.getElementById('getTablesButton').addEventListener('click', async () => {
-    console.log('getTablesButton')
+// // 过滤按钮
+// let getTablesButton = document.getElementById('getTablesButton')
+// document.getElementById('getTablesButton').addEventListener('click', async () => {
+//     console.log('getTablesButton')
 
-    if (filterInputValue.length == 0) {
-        // return
-    }
+//     if (filterInputValue.length == 0) {
+//         // return
+//     }
 
-    let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+//     let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
-    chrome.storage.local.get(['targetClass'], (result) => {
-        console.log(result)
-        var targetColumnClass = result.targetClass;
+//     chrome.storage.local.get(['targetClass'], (result) => {
+//         console.log(result)
+//         var targetColumnClass = result.targetClass;
 
-        chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            files: ['script/content-script.js']
-        }, () => {
-            console.log(filterInputValue, targetColumnClass)
-            chrome.tabs.sendMessage(tab.id, {content: filterInputValue, targetClass: targetColumnClass});
-        })
+//         chrome.scripting.executeScript({
+//             target: { tabId: tab.id },
+//             files: ['script/content-script.js']
+//         }, () => {
+//             console.log(filterInputValue, targetColumnClass)
+//             chrome.tabs.sendMessage(tab.id, {content: filterInputValue, targetClass: targetColumnClass});
+//         })
+//     })
+// }, false)
+
+// // 文本框
+// let filterInput = document.getElementById('filter-input')
+// var filterInputValue = ''
+
+// filterInput.addEventListener('input', async (value) => {
+//     filterInputValue = value.target.value
+// })
+
+document.addEventListener('DOMContentLoaded', () => {
+    let onoff = document.querySelector('#tm-onoff')
+    let keywordOnoff = document.querySelector('#tm-onoff-keyword')
+
+    let onOffChecked = true
+    let keywordOnoffChecked = false
+
+    let test = document.querySelector('#tm-onoff-test')
+
+    chrome.storage.local.get(['tm-onoff', 'tm-onoff-keyword'], function(result) {
+        console.log(result['tm-onoff'], result['tm-onoff-keyword'])
+
+        onOffChecked = result['tm-onoff'] == undefined ? true : result['tm-onoff']
+        keywordOnoffChecked = result['tm-onoff-keyword'] == undefined ? false : result['tm-onoff-keyword']
+
+        if (onOffChecked) {
+            onoff.setAttribute('checked', 'checked')
+        } else {
+            onoff.removeAttribute('checked')
+        }
+
+        if (keywordOnoffChecked) {
+            keywordOnoff.setAttribute('checked', 'checked')
+        } else {
+            keywordOnoff.removeAttribute('checked')
+        }
+    });
+
+    onoff.addEventListener('change', (event) => {
+        onOffChecked = !onOffChecked
+        chrome.storage.local.set({'tm-onoff': onOffChecked})
     })
-}, false)
 
-// 文本框
-let filterInput = document.getElementById('filter-input')
-var filterInputValue = ''
+    keywordOnoff.addEventListener('change', (event) => {
+        keywordOnoffChecked = !keywordOnoffChecked
+        chrome.storage.local.set({'tm-onoff-keyword': keywordOnoffChecked});
+    })
 
-filterInput.addEventListener('input', async (value) => {
-    filterInputValue = value.target.value
+    test.addEventListener('change', (event) => {
+        chrome.storage.local.get(['tm-onoff', 'tm-onoff-keyword'], function(result) {
+            console.log(result['tm-onoff'], result['tm-onoff-keyword'])
+            if (result['tm-onoff']) {
+                onoff.setAttribute('checked', 'checked')
+            } else {
+                onoff.removeAttribute('checked')
+            }
+
+            if (result['tm-onoff-keyword']) {
+                keywordOnoff.setAttribute('checked', 'checked')
+            } else {
+                keywordOnoff.removeAttribute('checked')
+            }
+        });
+    })
 })
