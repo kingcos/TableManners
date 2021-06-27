@@ -365,7 +365,7 @@ function filterRows(table, index, filterInputValue, isSpecial) {
     let shouldHide = false
 
     for (let map in GlobalFilterMap[tableID]) {
-      content = tds[map].innerHTML
+      content = tds[map].innerText
       if (content.indexOf(GlobalFilterMap[tableID][map]) == -1) {
         // NOT find it
         shouldHide = true
