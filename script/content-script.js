@@ -131,6 +131,8 @@ function enhanceTable(table, nextTable) {
     enhanceTable(table)   // Retry
   }
 
+  overrideOverflow(table)
+
   // if (table == null) { 
   //   console.error('This should not happen.')
   //   return
@@ -174,6 +176,20 @@ function enhanceTable(table, nextTable) {
   // --- Rows length is already satisified ---
   let head = rows[0]
   addIndicatorAndObserver(table, head)
+}
+
+function overrideOverflow(node) {
+  if (!node.getAttribute) {
+    return
+  }
+
+  // if (node.style.overflow == 'hidden') {
+    node.style.overflow = 'visible'
+  // }
+
+  if (node.parentNode != null) {
+    overrideOverflow(node.parentNode)
+  }
 }
 
 function addIndicatorAndObserver(table, targetHeader, nextTable) {
