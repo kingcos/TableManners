@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let onOffChecked = true
     let keywordOnoffChecked = false
 
-    let test = document.querySelector('#tm-onoff-test')
+    // let test = document.querySelector('#tm-onoff-test')
 
     chrome.storage.local.get(['tm-onoff', 'tm-onoff-keyword'], function(result) {
         console.log(result['tm-onoff'], result['tm-onoff-keyword'])
@@ -75,9 +75,12 @@ document.addEventListener('DOMContentLoaded', () => {
         onOffChecked = result['tm-onoff'] == undefined ? true : result['tm-onoff']
         keywordOnoffChecked = result['tm-onoff-keyword'] == undefined ? false : result['tm-onoff-keyword']
 
+        // let label = onoff.parentNode
         if (onOffChecked) {
+            // label.innerHTML = label.innerHTML.replace('停', '启')
             onoff.setAttribute('checked', 'checked')
         } else {
+            // label.innerHTML = label.innerHTML.replace('启', '停')
             onoff.removeAttribute('checked')
         }
 
@@ -86,10 +89,18 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             keywordOnoff.removeAttribute('checked')
         }
-    });
+    })
 
     onoff.addEventListener('change', (event) => {
         onOffChecked = !onOffChecked
+
+        // let label = event.target.parentNode
+        // if (onOffChecked) {
+        //     label.innerHTML = label.innerHTML.replace('启', '停')
+        // } else {
+        //     label.innerHTML = label.innerHTML.replace('停', '启')
+        // }
+
         chrome.storage.local.set({'tm-onoff': onOffChecked})
     })
 
@@ -98,20 +109,20 @@ document.addEventListener('DOMContentLoaded', () => {
         chrome.storage.local.set({'tm-onoff-keyword': keywordOnoffChecked});
     })
 
-    test.addEventListener('change', (event) => {
-        chrome.storage.local.get(['tm-onoff', 'tm-onoff-keyword'], function(result) {
-            console.log(result['tm-onoff'], result['tm-onoff-keyword'])
-            if (result['tm-onoff']) {
-                onoff.setAttribute('checked', 'checked')
-            } else {
-                onoff.removeAttribute('checked')
-            }
+    // test.addEventListener('change', (event) => {
+    //     chrome.storage.local.get(['tm-onoff', 'tm-onoff-keyword'], function(result) {
+    //         console.log(result['tm-onoff'], result['tm-onoff-keyword'])
+    //         if (result['tm-onoff']) {
+    //             onoff.setAttribute('checked', 'checked')
+    //         } else {
+    //             onoff.removeAttribute('checked')
+    //         }
 
-            if (result['tm-onoff-keyword']) {
-                keywordOnoff.setAttribute('checked', 'checked')
-            } else {
-                keywordOnoff.removeAttribute('checked')
-            }
-        });
-    })
+    //         if (result['tm-onoff-keyword']) {
+    //             keywordOnoff.setAttribute('checked', 'checked')
+    //         } else {
+    //             keywordOnoff.removeAttribute('checked')
+    //         }
+    //     });
+    // })
 })

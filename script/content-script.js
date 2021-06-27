@@ -1,13 +1,50 @@
 console.log('--- Running in content-script.js ---')
 
-chrome.runtime.onMessage.addListener(
-  function(message, sender, sendResponse) {
-    console.log(message)
-    if (message.content != null && message.targetClass != null) {
-      filterRows(message.content, message.targetClass)
+let onOffChecked = true
+
+chrome.storage.local.get(['tm-onoff', 'tm-onoff-keyword'], function(result) {
+  console.log(result ['tm-onoff'], result['tm-onoff-keyword'])
+
+  onOffChecked = result['tm-onoff'] == undefined ? true : result['tm-onoff']
+})
+
+chrome.storage.onChanged.addListener(function (changes, namespace) {
+  for (let [key, { oldValue, newValue }] of Object.entries(changes)) {
+    // console.log(
+    //   `Storage key "${key}" in namespace "${namespace}" changed.`,
+    //   `Old value was "${oldValue}", new value is "${newValue}".`
+    // );
+    if (key == 'tm-onoff') {
+      onOffChecked = newValue
+
+      if (oldValue) {
+        let popOvers = document.getElementsByClassName('tm-show')
+        for (let i = 0; i < popOvers.length; i += 1) {
+          let input = popOvers[i].querySelector('input')
+          input.value = ''
+          input.dispatchEvent(new Event('input', {
+            bubbles: true,
+            cancelable: true,
+          }))
+          let indicator = document.getElementsByClassName('tm-mouse-over-container')[0]
+          if (indicator) {
+            indicator.style.display = 'none'
+          }
+          popOvers[i].setAttribute('class', 'tm-hide')
+        }
+      }
     }
   }
-)
+})
+
+// chrome.runtime.onMessage.addListener(
+//   function(message, sender, sendResponse) {
+//     console.log(message)
+//     if (message.content != null && message.targetClass != null) {
+//       filterRows(message.content, message.targetClass)
+//     }
+//   }
+// )
 
 //添加css
 // let style = document.createElement('style');
@@ -207,6 +244,16 @@ function addIndicatorAndObserver(table, targetHeader, nextTable) {
     // When mouse enter, wait then apply it
     cell.addEventListener('mouseenter', (event) => {
       headerMouseEnterTimer = setTimeout(() => {
+        if (!onOffChecked) {
+          let indicator = event.target.getElementsByClassName(containerClass)[0]
+          if (indicator) {
+            indicator.style.display = 'none'
+          }
+
+          return
+        }
+
+
         handleColumn(table, i)
 
         createPopoverForCell(nextTable ? nextTable : table, cell, i)
