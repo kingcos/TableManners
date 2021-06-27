@@ -12,7 +12,7 @@ chrome.runtime.onMessage.addListener(
 //添加css
 // let style = document.createElement('style');
 // style.type = 'text/css';
-// style.innerHTML=".hidden{ display: none; } .show{ display: ''; }";
+// style.innerHTML='.hidden{ display: none; } .show{ display: ''; }';
 // document.getElementsByTagName('HEAD').item(0).appendChild(style);
 
 // --- Generic Functions ---
@@ -209,13 +209,13 @@ function addIndicatorAndObserver(table, targetHeader, nextTable) {
       headerMouseEnterTimer = setTimeout(() => {
         handleColumn(table, i)
 
-        createPopoverForCell(cell, i)
+        createPopoverForCell(table, cell, i)
 
         let indicator = event.target.getElementsByClassName(containerClass)[0]
         if (!indicator) {
           indicator = document.createElement('div')
           indicator.setAttribute('class', containerClass)
-          indicator.style.cssText = 'position: absolute; right: 0; top: 50%; z-index: 99; transform: translateY(-50%); font-size: 14px; display: block;'
+          indicator.style.cssText = 'position: absolute; right: 0; top: 50%; z-index: 99; transform: translateY(-50%); font-size: 14px;'
           indicator.appendChild(document.createTextNode('▼'))
           event.target.appendChild(indicator)
           event.target.style.position = 'relative'
@@ -227,7 +227,7 @@ function addIndicatorAndObserver(table, targetHeader, nextTable) {
             }
           })
         }
-        indicator.style.display = 'block'
+        indicator.style.display = ''
         
         event.target.style.position = 'relative'
 
@@ -277,77 +277,66 @@ function handleColumn(table, colIndex) {
   }
 }
 
-function createPopoverForCell(cell, index) {
-  if (cell.querySelector('#tm-popover-' + index) != null) {
+function createPopoverForCell(table, cell, index) {
+  let tableID = table.getAttribute(TableAttKey)
+
+  if (cell.querySelector(`#tm-popover-${index}-${tableID}`) != null) {
     return
   }
 
   cell.innerHTML += `
-      <div id="tm-popover-${index}" class="tm-hide" style="position: absolute;left: 50%;top: 0;z-index: 99;padding: 5px; transform: translate(-50%,-100%); font-size: 14px;">
-          <style type="text/css">.tm-hide { display: none; } .tm-show { display: ''; }</style>
-          <div style="text-align: left;">
-              <div style="background-color: #fff;background-clip: padding-box;border-radius: 2px;box-shadow: 0 3px 6px -4px rgb(0 0 0 / 12%), 0 6px 16px 0 rgb(0 0 0 / 8%), 0 9px 28px 8px rgb(0 0 0 / 5%);box-shadow: 0 0 8px rgba(0,0,0,.15)/9;">
-                  <div style="margin: 0;padding: 8px 16px;color: rgba(0,0,0,.85);font-weight: 500;border-bottom: 1px solid #f0f0f0;display: flex;align-items: center;justify-content: space-between;">
-                      <div>
-                          请输入关键词
-                      </div>
-                      <div>
-                          🔒
-                      </div>
-                  </div>
-                  <div id="tm-popover-${index}-input" style="padding: 12px 16px;color: rgba(0,0,0,.85);">
-                      <div style="border: 1px solid #000;padding: 5px;border-radius: 5px;">
-                          <div style="display: flex;align-items: center;justify-content: space-between;">
-                              <div>
-                                  <input type="text" placeholder="filter key" name="" style="border: 0;height: 30px; outline:none;">
-                              </div>
-                              <div style="text-align: center; width: 25px;">
-                                  Aa
-                              </div>
-                              <div style="text-align: center; width: 25px;">
-                                  .*
-                              </div>
-                          </div>
+      <div id='tm-popover-${index}-${tableID}' class='tm-hide' style='position: absolute;left: 50%;top: 0;z-index: 99;padding: 5px; transform: translate(-50%,-100%); font-size: 14px;'>
+        <style type="text/css">.tm-hide { display: none; } .tm-show { display: ''; }</style>
+        <div style="text-align: left;">
+            <div style="background-color: #fff;background-clip: padding-box;border-radius: 2px;box-shadow: 0 3px 6px -4px rgb(0 0 0 / 12%), 0 6px 16px 0 rgb(0 0 0 / 8%), 0 9px 28px 8px rgb(0 0 0 / 5%);box-shadow: 0 0 8px rgba(0,0,0,.15)/9;">
+                <div id="tm-popover-${index}-input-${tableID}" style="padding: 12px 16px;color: rgba(0,0,0,.85);">
+                    <div style="border: 1px solid #000;padding: 5px;border-radius: 5px;">
+                        <div style="display: flex;align-items: center;justify-content: space-between;">
+                            <div>
+                                <input type="text" placeholder="请输入关键词开始过滤" name="" style="border: 0;height: 30px; outline:none;">
+                            </div>
                         </div>
-                  </div>
-              </div>
-          </div>
-      </div>
+                      </div>
+                </div>
+            </div>
+        </div>
+    </div>
   `
 }
 
 function popOver(element, table, cell, index, isSpecial) {
-  let popOver = document.getElementById(`tm-popover-${index}`)
+  let tableID = table.getAttribute(TableAttKey)
+  let popOver = document.getElementById(`tm-popover-${index}-${tableID}`)
   if (popOver.getAttribute('class') == 'tm-hide') {
     // Hide last
     let shownPopOvers = document.getElementsByClassName('tm-show')
     for (let i = 0; i < shownPopOvers.length; i += 1) {
-      shownPopOvers[i].setAttribute("class", "tm-hide")
+      shownPopOvers[i].setAttribute('class', 'tm-hide')
     }
     
     // Show
-    if (element.innerText == "▼") {
-      element.innerText = "▲"
+    if (element.innerText == '▼') {
+      element.innerText = '▲'
     }
-    popOver.setAttribute("class", "tm-show")
+    popOver.setAttribute('class', 'tm-show')
 
-    let input = popOver.querySelector(`#tm-popover-${index}-input`)
+    let input = popOver.querySelector(`#tm-popover-${index}-input-${tableID}`)
 
     input.addEventListener('input', (event) => {
       filterRowsByKeyword(table, index, event.target.value, false, false, isSpecial)
       // console.log(event.target.value)
       if (event.target.value.trim() != '') {
         // Not empty
-        element.innerHTML = "🔍"
+        element.innerHTML = '🔍'
       } else {
-        element.innerHTML = "▲"
+        element.innerHTML = '▲'
       }
     })
   } else {
-    if (element.innerText == "▲") {
-      element.innerText = "▼"
+    if (element.innerText == '▲') {
+      element.innerText = '▼'
     }
-    popOver.setAttribute("class", "tm-hide")
+    popOver.setAttribute('class', 'tm-hide')
   }
 }
 
