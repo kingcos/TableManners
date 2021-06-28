@@ -10,11 +10,7 @@
 		"*://*/"
 	],
 	"permissions": [
-		"storage",
-		"activeTab",
-		"scripting",
-		"tabs",
-		"contextMenus"
+		"storage"
 	],
 	"content_scripts": [
 		{
