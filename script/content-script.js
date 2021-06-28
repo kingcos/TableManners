@@ -412,6 +412,7 @@ function filterRows(table, index, filterInputValue, isSpecial) {
     let shouldHide = false
 
     for (let map in GlobalFilterMap[tableID]) {
+      if (tds[map] == undefined) { return } // No tds, just return?
       content = tds[map].innerText
       if (content.indexOf(GlobalFilterMap[tableID][map]) == -1) {
         // NOT find it

@@ -13,6 +13,11 @@ input {
 	margin-bottom: 0px;
 }
 
+hr {
+	border: 1px solid #46465580;
+	transform: scaleY(0.5);
+}
+
 .tm-tips {
 	font-size: 4px;
 	color: gray;

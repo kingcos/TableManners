@@ -66,7 +66,8 @@ function findTargetColumn(selectedNode) {
                 return targetClassName
             } else {
                 // 不存在 thead；TODO
-                alert('不存在 thead')
+                // alert('不存在 thead')
+                
             }
         }
     } else {

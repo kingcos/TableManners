@@ -75,39 +75,47 @@ document.addEventListener('DOMContentLoaded', () => {
         onOffChecked = result['tm-onoff'] == undefined ? true : result['tm-onoff']
         keywordOnoffChecked = result['tm-onoff-keyword'] == undefined ? false : result['tm-onoff-keyword']
 
-        // let label = onoff.parentNode
-        if (onOffChecked) {
-            // label.innerHTML = label.innerHTML.replace('停', '启')
-            onoff.setAttribute('checked', 'checked')
-        } else {
-            // label.innerHTML = label.innerHTML.replace('启', '停')
-            onoff.removeAttribute('checked')
+        if (onoff != null) {
+            // let label = onoff.parentNode
+            if (onOffChecked) {
+                // label.innerHTML = label.innerHTML.replace('停', '启')
+                onoff.setAttribute('checked', 'checked')
+            } else {
+                // label.innerHTML = label.innerHTML.replace('启', '停')
+                onoff.removeAttribute('checked')
+            }
         }
 
-        if (keywordOnoffChecked) {
-            keywordOnoff.setAttribute('checked', 'checked')
-        } else {
-            keywordOnoff.removeAttribute('checked')
+        if (keywordOnoff != null) { 
+            if (keywordOnoffChecked) {
+                keywordOnoff.setAttribute('checked', 'checked')
+            } else {
+                keywordOnoff.removeAttribute('checked')
+            }
         }
     })
 
-    onoff.addEventListener('change', (event) => {
-        onOffChecked = !onOffChecked
+    if (onoff) {
+        onoff.addEventListener('change', (event) => {
+            onOffChecked = !onOffChecked
+    
+            // let label = event.target.parentNode
+            // if (onOffChecked) {
+            //     label.innerHTML = label.innerHTML.replace('启', '停')
+            // } else {
+            //     label.innerHTML = label.innerHTML.replace('停', '启')
+            // }
+    
+            chrome.storage.local.set({'tm-onoff': onOffChecked})
+        })
+    }
 
-        // let label = event.target.parentNode
-        // if (onOffChecked) {
-        //     label.innerHTML = label.innerHTML.replace('启', '停')
-        // } else {
-        //     label.innerHTML = label.innerHTML.replace('停', '启')
-        // }
-
-        chrome.storage.local.set({'tm-onoff': onOffChecked})
-    })
-
-    keywordOnoff.addEventListener('change', (event) => {
-        keywordOnoffChecked = !keywordOnoffChecked
-        chrome.storage.local.set({'tm-onoff-keyword': keywordOnoffChecked});
-    })
+    if (keywordOnoff) {
+        keywordOnoff.addEventListener('change', (event) => {
+            keywordOnoffChecked = !keywordOnoffChecked
+            chrome.storage.local.set({'tm-onoff-keyword': keywordOnoffChecked});
+        })
+    }
 
     // test.addEventListener('change', (event) => {
     //     chrome.storage.local.get(['tm-onoff', 'tm-onoff-keyword'], function(result) {
