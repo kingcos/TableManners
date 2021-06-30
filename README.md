@@ -12,10 +12,10 @@ TableManner，是一款服务于网页中 `<table>` 表格的浏览器插件。
 
 - [x] Filter rows by keywords
 - [x] Recognize tables automatically
-- [x] Chrome supported
-- [ ] Safari supported
-- [ ] Firefox supported
-- [ ] Using TypeScript
+- [x] Support Chrome (In review)
+- [ ] Support Safari
+- [ ] Support Firefox (?)
+- [ ] Refactor with TypeScript
 
 ## License
 
